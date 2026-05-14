@@ -1,5 +1,11 @@
 # weather_app_sailing
 
+To run (once flutter and android studio are install, connect phone to laptop with usb cable):
+flutter build apk
+flutter install 
+
+
+
 A new Flutter project.
 
 ## Getting Started
