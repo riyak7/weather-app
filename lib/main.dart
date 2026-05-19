@@ -27,21 +27,20 @@ class MainApp extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     // The tab system including the interactive top bar for switching
     // and each page that gets displayed.
     return DefaultTabController(
       length: tabs.length,
 
-      child: Scaffold (
-
+      child: Scaffold(
         // Top bar
         appBar: AppBar(
           title: const TabBar(
             tabs: tabs,
             dividerColor: Colors.transparent,
-            labelPadding: const EdgeInsets.only(bottom: 5.0)
-          )
+            labelPadding: EdgeInsets.only(bottom: 5.0),
+          ),
         ),
 
         // The actual content
@@ -52,8 +51,8 @@ class MainApp extends StatelessWidget {
             RouteView(),
             SettingsView(),
           ],
-        )
-      )
+        ),
+      ),
     );
   }
 }
