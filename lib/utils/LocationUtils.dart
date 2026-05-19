@@ -6,6 +6,9 @@ import "package:http/http.dart" as http;
 
 class LocationUtils {
 
+  //static final position = determinePosition();
+  static final town = getCurrentAddress();
+
   static Future<Position> determinePosition() async {
     LocationPermission permission;
     bool serviceEnabled;
@@ -56,7 +59,7 @@ class LocationUtils {
   static Future<String> _getCurrentAddressWeb() async {
     try {
       Position position = await determinePosition();
-      final url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.latitude}&lon=${position.longitude}";
+      final url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.latitude}&lon=${position.longitude}&addressdetails=1";
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -69,7 +72,9 @@ class LocationUtils {
       }
 
       final data = jsonDecode(response.body);
-      return data["display_name"] ?? "No address found";
+      final town = data["address"]["town"] ?? data["address"]["city"] ?? data["address"]["village"] ?? "Unknown Location";
+      
+      return town;
     } catch(e) {
       return "Error retrieving address: $e";
     }
