@@ -37,6 +37,10 @@ dependencies:
   iconoir_flutter: ^7.11.0
   geolocator: ^14.0.2
   geocoding: ^4.0.0
+  material: ^1.0.1
+  open_meteo: ^3.0.0
+  latlong2: ^0.10.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +52,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  test: ^1.30.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
