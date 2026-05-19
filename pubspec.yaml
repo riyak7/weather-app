@@ -40,6 +40,9 @@ dependencies:
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
   url_launcher: ^6.3.2
+  gpx: any
+  open_file_manager: any
+  file_picker: any
 
 dev_dependencies:
   flutter_test:
