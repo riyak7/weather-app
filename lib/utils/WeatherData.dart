@@ -1,6 +1,8 @@
 import 'package:open_meteo/open_meteo.dart';
 
 class WeatherData {
+  static TemperatureUnit _tempUnit = TemperatureUnit.celsius;
+
   static List<OpenMeteoLocation> getMapLocations(double latitudeTopLeft, 
                                                   double longitudeTopLeft, 
                                                   double latitudeBottomRight, 
@@ -15,5 +17,16 @@ class WeatherData {
       (i) => OpenMeteoLocation(latitude:  (1+(i % samplesLatitude)) * (latitudeBottomRight-latitudeTopLeft) / (samplesLatitude + 1), 
                               longitude: (1+(i ~/ samplesLatitude)) * (longitudeBottomRight-longitudeTopLeft) / (samplesLongitude + 1)),
     );
+  }
+
+  static List<(double, double, double, double)> getWindData(List<OpenMeteoLocation> locations) {
+    final weather = WeatherApi(
+      userAgent: "My-Flutter-App",
+      temperatureUnit: _tempUnit,
+    );
+  }
+
+  static void changeTemperatureUnit(String unit) {
+    return ;
   }
 }
