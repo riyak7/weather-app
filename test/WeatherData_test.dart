@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:weather_app_sailing/main.dart';
-import 'package:weather_app_sailing/pages/WeatherData.dart';
+import 'package:weather_app_sailing/WeatherData.dart';
 
 void main() {
   test('Testing WeatherData._getMapLocations', () {
