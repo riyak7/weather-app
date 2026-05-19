@@ -21,10 +21,12 @@ class WeatherData {
 
   static List<(double, double, double, double)> getWindData(List<OpenMeteoLocation> locations) {
     final weather = WeatherApi(
-    userAgent: "My-Flutter-App",
-    temperatureUnit: _tempUnit,
-  );
+      userAgent: "My-Flutter-App",
+      temperatureUnit: _tempUnit,
+    );
+  }
 
-  static void changeTemperatureUnit(String unit)
+  static void changeTemperatureUnit(String unit) {
+    return ;
   }
 }
