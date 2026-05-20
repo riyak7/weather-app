@@ -14,8 +14,9 @@ class WeatherData {
     // generate objects for each location to request wind data 
     return {
       for (var i=0; i < samplesLongitude * samplesLatitude; i++)
-        OpenMeteoLocation(latitude:  double.parse(((1+(i % samplesLatitude)) * (latitudeBottomRight-latitudeTopLeft) / (samplesLatitude + 1)).toStringAsFixed(5)), 
-                          longitude: double.parse(((1+(i ~/ samplesLatitude)) * (longitudeBottomRight-longitudeTopLeft) / (samplesLongitude + 1)).toStringAsFixed(5)) )
+        OpenMeteoLocation(latitude:  double.parse((latitudeTopLeft + (1+(i % samplesLatitude)) * (latitudeBottomRight-latitudeTopLeft) / (samplesLatitude + 1)).toStringAsFixed(5)), 
+                          longitude: double.parse((longitudeTopLeft + (1+(i ~/ samplesLatitude)) * (longitudeBottomRight-longitudeTopLeft) / (samplesLongitude + 1)).toStringAsFixed(5)) )
+                          // Arnav - Fixed issue where didn't add original lat and long, hence coords were returned starting from (0,0)
     };
   }
 
@@ -31,8 +32,8 @@ static Set<OpenMeteoLocation> locationsFromCoordList(List<(num, num)> coords) {
 
   static Future<Map<DateTime, Set<(num, num, num, num)> >> getWindData(Set<OpenMeteoLocation> locations) async {
     // returns Map from time a DateTime object to a set of 
-    // (longitude, latitude, windspeed, wind direction) records
-
+    // (latitude, longitude, windspeed, wind direction) records
+    // Arnav - Changed above comment ^, it returns (latitude, longitude, ...)
     final response = await _weather.request(
       locations: locations, //convert to set of locations not list
       hourly: {WeatherHourly.wind_speed_10m, WeatherHourly.wind_direction_10m},
@@ -42,7 +43,8 @@ static Set<OpenMeteoLocation> locationsFromCoordList(List<(num, num)> coords) {
 
     Map<DateTime, Set<(num, num, num, num)> > data = {};
     for (final item in response.segments) {
-      if ((item.hourlyData[WeatherHourly.wind_speed_10m]?.values.isEmpty ?? true ) || (item.hourlyData[WeatherHourly.wind_speed_10m]?.values.isEmpty ?? true )) {
+      // Arnav - Changed second check to wind direction (was wind_speed earlier which was same as first check)
+      if ((item.hourlyData[WeatherHourly.wind_speed_10m]?.values.isEmpty ?? true ) || (item.hourlyData[WeatherHourly.wind_direction_10m]?.values.isEmpty ?? true )) {
         throw Exception("Data not found");
       }
       for (final time in (item.hourlyData[WeatherHourly.wind_speed_10m]!.values.keys)) {
@@ -61,7 +63,8 @@ static Set<OpenMeteoLocation> locationsFromCoordList(List<(num, num)> coords) {
 
   static void changeTemperatureUnit(String unit) {
     switch (unit) {
-      case "celcius":
+      // Arnav - Corrected typo for 'celcius'
+      case "celsius":
         _weather = WeatherApi(temperatureUnit: TemperatureUnit.celsius);
         break;
       case "fahrenheit":
