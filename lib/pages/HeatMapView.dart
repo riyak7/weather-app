@@ -38,6 +38,8 @@ class _HeatMapViewState extends State<HeatMapView> {
 
   // The size of the grid we render 15*15 = 225 tiles and arrows rendered
   static final _gridSize = 10;
+  // Our grid is blocky, we need to blur to make it look nice
+  static final _blur = 24.0;
 
   // Clean up on deletion
   @override
@@ -117,7 +119,7 @@ class _HeatMapViewState extends State<HeatMapView> {
           valueListenable: _heatmapTiles,
           builder: (context, polygons, child) {
             return ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              imageFilter: ImageFilter.blur(sigmaX: _blur, sigmaY: _blur),
               child: PolygonLayer(polygons: polygons)
             );
           },

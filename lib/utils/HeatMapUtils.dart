@@ -5,7 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:iconoir_flutter/iconoir_flutter.dart' as icons;
 
-final _opacity = 0.30;
+final _opacity = 0.50;
 
 List<Polygon> rawToPolygon(
   Set<(num, num, num, num)> rawData,
