@@ -1,1 +1,1 @@
-bool isCelcius = false;
+bool isCelsius = false;

@@ -14,10 +14,11 @@ class WindCompass extends StatelessWidget {
     return Column(
       children: [
         const Text(
-          "Wind Direction",
+          "\nWind Direction",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
 
@@ -95,6 +96,7 @@ class WindCompass extends StatelessWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
+            color: Colors.white
           ),
         ),
       ],
