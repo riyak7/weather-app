@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -112,7 +114,10 @@ class _HeatMapViewState extends State<HeatMapView> {
         ValueListenableBuilder<List<Polygon>>(
           valueListenable: _heatmapTiles,
           builder: (context, polygons, child) {
-            return PolygonLayer(polygons: polygons);
+            return ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: PolygonLayer(polygons: polygons)
+            );
           },
         ),
         // And this is the arrow layer
