@@ -154,7 +154,6 @@ class WeatherData {
         });
       }
     }
-
     return pointData;
   }
 }

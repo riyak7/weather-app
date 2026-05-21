@@ -3,6 +3,7 @@ import 'package:gpx/gpx.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'MapView.dart';
+import '../globals.dart' as globals;
 
 //poly line layer
 
@@ -14,25 +15,23 @@ class RouteView extends StatefulWidget {
 }
 
 class _RouteViewState extends State<RouteView> {
-  var importedGpxData;
   bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    if (importedGpxData != null) {
+    if (globals.importedGpxData != null) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Imported Route'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              setState(() {
-                importedGpxData = null;
-              });
+              globals.importedGpxData = null;
+              setState(() {});
             },
           ),
         ),
-        body: MapView(gpxData: importedGpxData),
+        body: MapView(gpxData: globals.importedGpxData),
       );
     }
 
@@ -59,7 +58,7 @@ class _RouteViewState extends State<RouteView> {
       String fileContent = await importRoute();
       var gpxData = GpxReader().fromString(fileContent);
       setState(() {
-        importedGpxData = gpxData;
+        globals.importedGpxData = gpxData;
       });
     } catch (e) {
       if (mounted) {
@@ -97,9 +96,4 @@ Future<String> importFile() async {
   if (bytes == null) return '';
   String fileContent = utf8.decode(bytes);
   return fileContent;
-}
-
-Future<String> getPointData() async {
-  // Placeholder for future implementation to extract point data from GPX
-  return "";
 }

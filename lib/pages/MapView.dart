@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/WeatherData.dart';
+import '../globals.dart';
 
 class MapView extends StatefulWidget {
   final gpxData;
@@ -209,7 +210,7 @@ class _MapViewState extends State<MapView> {
               ),
               _buildDetailRow(
                 'Temperature',
-                '${(point['temperature'] as double).toStringAsFixed(1)}°C',
+                _formatTemperature(point['temperature'] as double),
               ),
               _buildDetailRow(
                 'Latitude',
@@ -233,6 +234,16 @@ class _MapViewState extends State<MapView> {
         );
       },
     );
+  }
+
+  String _formatTemperature(double tempCelsius) {
+    if (isCelcius) {
+      return '${tempCelsius.toStringAsFixed(1)}°C';
+    } else {
+      // Convert Celsius to Fahrenheit: (C * 9/5) + 32
+      double tempFahrenheit = (tempCelsius * 9 / 5) + 32;
+      return '${tempFahrenheit.toStringAsFixed(1)}°F';
+    }
   }
 
   Widget _buildDetailRow(String label, String value) {
