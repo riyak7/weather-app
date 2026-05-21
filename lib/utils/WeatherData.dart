@@ -47,7 +47,7 @@ class WeatherData {
     coordsList.sort((a,b) => a.$1.compareTo(b.$1));
 
     final response = await _weather.request(
-      locations: locations, 
+      locations: Set.from(locations.map((e) => OpenMeteoLocation(latitude: double.parse(e.latitude.toStringAsFixed(5)), longitude: double.parse(e.longitude.toStringAsFixed(5)),))), 
       hourly: {WeatherHourly.wind_speed_10m, WeatherHourly.wind_direction_10m},
     );
 
