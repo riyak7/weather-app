@@ -63,7 +63,10 @@ class _HeatMapViewState extends State<HeatMapView> {
           if (event is MapEventMoveEnd ||
               event is MapEventDoubleTapZoomEnd ||
               event is MapEventFlingAnimationEnd ||
-              event is MapEventScrollWheelZoom) {
+              event is MapEventScrollWheelZoom ||
+              event is MapEventNonRotatedSizeChange // <- This event is the start event
+              ) {
+            
             // Debounce logic, if we already have a timer -> cancel it
             // Now create a new one that runs remake heatmap after _debounceDuration milliseconds
             _timer?.cancel();
@@ -77,7 +80,6 @@ class _HeatMapViewState extends State<HeatMapView> {
 
               // TODO, currently we just look at the first time but we should look at the current time
               if (rawData.values.isNotEmpty) {
-                print(rawData.values.first.length);
                 // Using the data fetched from the api create the heatmap and the arrows
                 // 1.07 scaling needed because without it tiles too small, idk why
                 double gridWidth = 1.07 * (bounds.east - bounds.west)/_gridSize;
