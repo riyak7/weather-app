@@ -237,7 +237,7 @@ class _MapViewState extends State<MapView> {
   }
 
   String _formatTemperature(double tempCelsius) {
-    if (isCelcius) {
+    if (isCelsius) {
       return '${tempCelsius.toStringAsFixed(1)}°C';
     } else {
       // Convert Celsius to Fahrenheit: (C * 9/5) + 32
