@@ -37,7 +37,7 @@ class _HeatMapViewState extends State<HeatMapView> {
   final Duration _debounceDuration = Duration(milliseconds: 500);
 
   // The size of the grid we render 15*15 = 225 tiles and arrows rendered
-  static final _gridSize = 15;
+  static final _gridSize = 10;
 
   // Clean up on deletion
   @override
@@ -80,8 +80,8 @@ class _HeatMapViewState extends State<HeatMapView> {
                 print(rawData.values.first.length);
                 // Using the data fetched from the api create the heatmap and the arrows
                 // 1.07 scaling needed because without it tiles too small, idk why
-                double gridWidth = 1.07 * (bounds.east - bounds.west)/_gridSize;
-                double gridHeight = 1.07 * (bounds.north - bounds.south)/_gridSize;
+                double gridWidth = (bounds.east - bounds.west)/_gridSize;
+                double gridHeight = (bounds.north - bounds.south)/_gridSize;
 
                 // Converts the raw data to polygon data that can be drawn to a map
                 _heatmapTiles.value = rawToPolygon(
