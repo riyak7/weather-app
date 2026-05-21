@@ -1,6 +1,7 @@
 import "dart:math";
 import 'package:flutter/material.dart';
 import "../utils/LocationUtils.dart";
+import "../utils/UnitConversionUtils.dart";
 import "../widgets/WindCompass.dart";
 
 
@@ -65,10 +66,10 @@ class CurrentLocationView extends StatelessWidget {
                         ),
                       ],
                     ),
-                    IconButton(
+                    /*IconButton(
                       icon: const Icon(Icons.menu, color: Colors.white),
                       onPressed: () {},
-                    ),
+                    ), REMOVE THIS --> THIS IS THREE BARS, NOT NEEDED */
                   ],
                 ),
               ),
@@ -119,43 +120,43 @@ class CurrentLocationView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
-                          height: 100,
+                          height: 125,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: 24,
                             itemBuilder: (context, index) {
-                              final temps = [
-                                70,
-                                71,
-                                72,
-                                73,
-                                74,
-                                75,
-                                74,
-                                73,
-                                72,
-                                71,
-                                70,
-                                69,
-                                68,
-                                67,
-                                68,
-                                70,
-                                72,
-                                74,
-                                75,
-                                76,
-                                75,
-                                74,
-                                73,
-                                72,
+                              final forecastData = [
+                                [19, 20],
+                                [20, 21],
+                                [31, 19],
+                                [73, 74],
+                                [74, 73],
+                                [71, 70],
+                                [68, 67],
+                                [70, 72],
+                                [72, 71],
+                                [70, 69],
+                                [68, 67],
+                                [70, 72],
+                                [72, 74],
+                                [74, 73],
+                                [75, 76],
+                                [76, 75],
+                                [35, 19],
+                                [74, 42],
+                                [64, 19],
+                                [12, 31],
+                                [73, 74],
+                                [74, 73],
+                                [71, 70],
+                                [68, 67]
                               ];
                               return _buildHourlyItem(
                                 context,
                                 time: index == 0
                                     ? 'Now'
                                     : '$index${index < 12 ? 'AM' : 'PM'}',
-                                temp: '${temps[index]}°',
+                                temp: '${UnitConversionUtils.temp(forecastData[index][0])}°\n${forecastData[index][1]}kn',
                                 icon: index < 6
                                     ? Icons.wb_cloudy
                                     : Icons.wb_sunny,
@@ -221,9 +222,9 @@ class CurrentLocationView extends StatelessWidget {
                           children: [
                             Expanded(
                               child: _buildWeatherDetail(
-                                Icons.water_drop,
-                                'Humidity',
-                                '45%',
+                                Icons.wind_power,
+                                'Wind Speed',
+                                '10 knots',
                                 isDark,
                               ),
                             ),
@@ -231,8 +232,8 @@ class CurrentLocationView extends StatelessWidget {
                             Expanded(
                               child: _buildWeatherDetail(
                                 Icons.air,
-                                'Wind',
-                                '12 mph',
+                                'Gust Speed',
+                                '12 knots',
                                 isDark,
                               ),
                             ),
@@ -240,7 +241,7 @@ class CurrentLocationView extends StatelessWidget {
                             Expanded(
                               child: _buildWeatherDetail(
                                 Icons.wb_sunny_outlined,
-                                'UV Index',
+                                'Visibility',
                                 '6',
                                 isDark,
                               ),
