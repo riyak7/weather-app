@@ -19,13 +19,13 @@ List<Polygon> rawToPolygon(
       .map(
         (rawTile) => Polygon(
           points: [
-            LatLng(rawTile.$1.toDouble(), rawTile.$2.toDouble()),
-            LatLng(rawTile.$1.toDouble(), rawTile.$2.toDouble() + width),
+            LatLng(rawTile.$1.toDouble() - height/2, rawTile.$2.toDouble() - width/2),
+            LatLng(rawTile.$1.toDouble()-height/2, rawTile.$2.toDouble() + width/2),
             LatLng(
-              rawTile.$1.toDouble() + height,
-              rawTile.$2.toDouble() + width,
+              rawTile.$1.toDouble() + height/2,
+              rawTile.$2.toDouble() + width/2,
             ),
-            LatLng(rawTile.$1.toDouble() + height, rawTile.$2.toDouble()),
+            LatLng(rawTile.$1.toDouble() + height/2, rawTile.$2.toDouble()-width/2),
           ],
           color: Color.fromRGBO(
             255,
@@ -45,7 +45,7 @@ List<Marker> rawToMarker(
 ){
   return rawData.map((data) =>
     Marker(
-      point: LatLng(data.$1 + height/2, data.$2 + width/2),
+      point: LatLng(data.$1 as double, data.$2 as double),
       width: 20,
       height: 20,
       child: Transform.rotate(angle: data.$4 * pi / 180, child: icons.ArrowUp(color: const Color.fromARGB(109, 100, 100, 100))),

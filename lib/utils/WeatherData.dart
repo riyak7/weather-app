@@ -14,8 +14,8 @@ class WeatherData {
     // generate objects for each location to request wind data 
     return {
       for (var i=0; i < samplesLongitude * samplesLatitude; i++)
-        OpenMeteoLocation(latitude:  double.parse((latitudeTopLeft + (1+(i % samplesLatitude)) * (latitudeBottomRight-latitudeTopLeft) / (samplesLatitude + 1)).toStringAsFixed(5)), 
-                          longitude: double.parse((longitudeTopLeft + (1+(i ~/ samplesLatitude)) * (longitudeBottomRight-longitudeTopLeft) / (samplesLongitude + 1)).toStringAsFixed(5)) )
+        OpenMeteoLocation(latitude:  (latitudeTopLeft + (0.5+(i % samplesLatitude)) * (latitudeBottomRight-latitudeTopLeft) / (samplesLatitude)), 
+                          longitude: (longitudeTopLeft + (0.5+(i ~/ samplesLatitude)) * (longitudeBottomRight-longitudeTopLeft) / (samplesLongitude)) )
                           // Arnav - Fixed issue where didn't add original lat and long, hence coords were returned starting from (0,0)
     };
   }
@@ -34,15 +34,26 @@ static Set<OpenMeteoLocation> locationsFromCoordList(List<(num, num)> coords) {
     // returns Map from time a DateTime object to a set of 
     // (latitude, longitude, windspeed, wind direction) records
     // Arnav - Changed above comment ^, it returns (latitude, longitude, ...)
+
+    // final output returns data at locations slightly off the requested ones, 
+    // so have to store locations requested and match these up later
+    final coordsList = [for (final l in locations) (l.latitude, l.longitude)];
+    coordsList.sort((a,b) => a.$1.compareTo(b.$1));
+
     final response = await _weather.request(
-      locations: locations, //convert to set of locations not list
+      locations: locations, 
       hourly: {WeatherHourly.wind_speed_10m, WeatherHourly.wind_direction_10m},
     );
 
     // TODO - check no error with request
 
+    // aligning locations to the requested coordinates instead of those returned by API
+    var responseSorted = response.segments;
+    responseSorted.sort((a,b) => (a.latitude == b.latitude ? a.longitude.compareTo(b.longitude) : a.latitude.compareTo(b.latitude)) );
+
     Map<DateTime, Set<(num, num, num, num)> > data = {};
-    for (final item in response.segments) {
+    for (var i=0; i<responseSorted.length; i++) {
+      final item = responseSorted[i];
       // Arnav - Changed second check to wind direction (was wind_speed earlier which was same as first check)
       if ((item.hourlyData[WeatherHourly.wind_speed_10m]?.values.isEmpty ?? true ) || (item.hourlyData[WeatherHourly.wind_direction_10m]?.values.isEmpty ?? true )) {
         throw Exception("Data not found");
@@ -51,8 +62,8 @@ static Set<OpenMeteoLocation> locationsFromCoordList(List<(num, num)> coords) {
         if (!data.containsKey(time)) {
           data[time] = {};
         }
-        data[time]?.add((item.latitude, 
-                        item.longitude, 
+        data[time]?.add((coordsList[i].$1, 
+                        coordsList[i].$2, 
                         item.hourlyData[WeatherHourly.wind_speed_10m]!.values[time]!, 
                         item.hourlyData[WeatherHourly.wind_direction_10m]!.values[time]!
                         ));
