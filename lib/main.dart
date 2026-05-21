@@ -46,7 +46,7 @@ class MainApp extends StatelessWidget {
         // The actual content
         body: TabBarView(
           children: [
-            MapView(),
+            HeatMapView(),
             CurrentLocationView(),
             RouteView(),
             SettingsView(),
