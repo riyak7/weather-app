@@ -98,3 +98,8 @@ Future<String> importFile() async {
   String fileContent = utf8.decode(bytes);
   return fileContent;
 }
+
+Future<String> getPointData() async {
+  // Placeholder for future implementation to extract point data from GPX
+  return "";
+}
