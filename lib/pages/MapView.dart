@@ -35,7 +35,7 @@ class _MapViewState extends State<MapView> {
     try {
       List<(double, double)> routeCoords = _extractCoordinatesFromGpx();
       if (routeCoords.isNotEmpty) {
-        final data = await WeatherData.getPointData(routeCoords);
+        final data = await WeatherData.getRouteData(routeCoords);
         setState(() {
           pointData = data;
         });
@@ -153,7 +153,7 @@ class _MapViewState extends State<MapView> {
               border: Border.all(color: Colors.white, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 4,
                   spreadRadius: 1,
                 ),
@@ -161,7 +161,7 @@ class _MapViewState extends State<MapView> {
             ),
             child: Center(
               child: Text(
-                '${(point['windSpeed'] as double).toStringAsFixed(1)}',
+                (point['windSpeed'] as double).toStringAsFixed(1),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10,
@@ -236,13 +236,12 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  String _formatTemperature(double tempCelsius) {
+  // request already handles units, don't need to manually convert after - ben
+  String _formatTemperature(double temp) {
     if (isCelsius) {
-      return '${tempCelsius.toStringAsFixed(1)}°C';
+      return '${temp.toStringAsFixed(1)}°C';
     } else {
-      // Convert Celsius to Fahrenheit: (C * 9/5) + 32
-      double tempFahrenheit = (tempCelsius * 9 / 5) + 32;
-      return '${tempFahrenheit.toStringAsFixed(1)}°F';
+      return '${temp.toStringAsFixed(1)}°F';
     }
   }
 
@@ -337,7 +336,7 @@ class _MapViewState extends State<MapView> {
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                   ),
                 ],
