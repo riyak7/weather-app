@@ -1,4 +1,3 @@
-import 'package:gpx/gpx.dart';
-
-bool isCelsius = false;
+bool isCelsius = true;
+bool isKnots = false; // need to add button to change
 var importedGpxData;

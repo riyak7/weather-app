@@ -39,6 +39,9 @@ class _HeatMapViewState extends State<HeatMapView> {
   // The size of the grid we render 15*15 = 225 tiles and arrows rendered
   static final _gridSize = 10;
 
+  // Our grid is blocky, we need to blur to make it look nice
+  static final _blur = 24.0;
+
   // Clean up on deletion
   @override
   dispose() {
@@ -63,7 +66,10 @@ class _HeatMapViewState extends State<HeatMapView> {
           if (event is MapEventMoveEnd ||
               event is MapEventDoubleTapZoomEnd ||
               event is MapEventFlingAnimationEnd ||
-              event is MapEventScrollWheelZoom) {
+              event is MapEventScrollWheelZoom ||
+              event is MapEventNonRotatedSizeChange // <- This event is the start event
+              ) {
+            
             // Debounce logic, if we already have a timer -> cancel it
             // Now create a new one that runs remake heatmap after _debounceDuration milliseconds
             _timer?.cancel();
@@ -80,8 +86,8 @@ class _HeatMapViewState extends State<HeatMapView> {
                 print(rawData.values.first.length);
                 // Using the data fetched from the api create the heatmap and the arrows
                 // 1.07 scaling needed because without it tiles too small, idk why
-                double gridWidth = 1.07 * (bounds.east - bounds.west)/_gridSize;
-                double gridHeight = 1.07 * (bounds.north - bounds.south)/_gridSize;
+                double gridWidth = (bounds.east - bounds.west)/_gridSize;
+                double gridHeight = (bounds.north - bounds.south)/_gridSize;
 
                 // Converts the raw data to polygon data that can be drawn to a map
                 _heatmapTiles.value = rawToPolygon(

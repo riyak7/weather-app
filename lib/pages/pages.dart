@@ -4,3 +4,4 @@ export 'HeatMapView.dart';
 export 'RouteView.dart';
 export 'SettingsView.dart';
 export 'CurrentLocationView.dart';
+export 'MapView.dart';
