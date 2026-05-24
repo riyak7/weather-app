@@ -11,7 +11,7 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  late bool _isCelcius = isCelcius;
+  late bool _isCelsius = isCelsius;
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +54,18 @@ class _SettingsViewState extends State<SettingsView> {
                 children: [
                   _ToggleButton(
                     label: '°F',
-                    selected: !_isCelcius,
+                    selected: !_isCelsius,
                     onTap: () => setState(() {
-                      _isCelcius = false;
-                      isCelcius = false;
+                      _isCelsius = false;
+                      isCelsius = false;
                     }),
                   ),
                   _ToggleButton(
                     label: '°C',
-                    selected: _isCelcius,
+                    selected: _isCelsius,
                     onTap: () => setState(() {
-                      _isCelcius = true;
-                      isCelcius = true;
+                      _isCelsius = true;
+                      isCelsius = true;
                     }),
                   ),
                 ],

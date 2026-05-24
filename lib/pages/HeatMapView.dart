@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -35,7 +37,9 @@ class _HeatMapViewState extends State<HeatMapView> {
   final Duration _debounceDuration = Duration(milliseconds: 500);
 
   // The size of the grid we render 15*15 = 225 tiles and arrows rendered
-  static final _gridSize = 15;
+  static final _gridSize = 10;
+  // Our grid is blocky, we need to blur to make it look nice
+  static final _blur = 24.0;
 
   // Clean up on deletion
   @override
@@ -61,7 +65,10 @@ class _HeatMapViewState extends State<HeatMapView> {
           if (event is MapEventMoveEnd ||
               event is MapEventDoubleTapZoomEnd ||
               event is MapEventFlingAnimationEnd ||
-              event is MapEventScrollWheelZoom) {
+              event is MapEventScrollWheelZoom ||
+              event is MapEventNonRotatedSizeChange // <- This event is the start event
+              ) {
+            
             // Debounce logic, if we already have a timer -> cancel it
             // Now create a new one that runs remake heatmap after _debounceDuration milliseconds
             _timer?.cancel();
@@ -75,11 +82,10 @@ class _HeatMapViewState extends State<HeatMapView> {
 
               // TODO, currently we just look at the first time but we should look at the current time
               if (rawData.values.isNotEmpty) {
-                print(rawData.values.first.length);
                 // Using the data fetched from the api create the heatmap and the arrows
                 // 1.07 scaling needed because without it tiles too small, idk why
-                double gridWidth = 1.07 * (bounds.east - bounds.west)/_gridSize;
-                double gridHeight = 1.07 * (bounds.north - bounds.south)/_gridSize;
+                double gridWidth = (bounds.east - bounds.west)/_gridSize;
+                double gridHeight = (bounds.north - bounds.south)/_gridSize;
 
                 // Converts the raw data to polygon data that can be drawn to a map
                 _heatmapTiles.value = rawToPolygon(
@@ -112,7 +118,10 @@ class _HeatMapViewState extends State<HeatMapView> {
         ValueListenableBuilder<List<Polygon>>(
           valueListenable: _heatmapTiles,
           builder: (context, polygons, child) {
-            return PolygonLayer(polygons: polygons);
+            return ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: _blur, sigmaY: _blur),
+              child: PolygonLayer(polygons: polygons)
+            );
           },
         ),
         // And this is the arrow layer
