@@ -12,6 +12,7 @@ class SettingsView extends StatefulWidget {
 
 class _SettingsViewState extends State<SettingsView> {
   late bool _isCelsius = isCelsius;
+  late bool _isKnots = isKnots;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +73,35 @@ class _SettingsViewState extends State<SettingsView> {
               ),
             ],
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Wind Speed',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              Row(
+                children: [
+                  _ToggleButton(
+                    label: 'm/s',
+                    selected: !_isKnots,
+                    onTap: () => setState(() {
+                      _isKnots = false;
+                      isKnots = false;
+                    }),
+                  ),
+                  _ToggleButton(
+                    label: 'kn',
+                    selected: _isKnots,
+                    onTap: () => setState(() {
+                      _isKnots = true;
+                      isKnots = true;
+                    }),
+                  ),
+                ],
+              ),
+            ],
+          )
         ],
       ),
     );
