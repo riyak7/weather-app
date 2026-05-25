@@ -182,54 +182,56 @@ class _MapViewState extends State<MapView> {
       builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Route Point Details',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildDetailRow(
-                'Wind Speed',
-                '${(point['windSpeed'] as double).toStringAsFixed(1)} m/s',
-              ),
-              _buildDetailRow(
-                'Wind Direction',
-                '${(point['windDirection'] as double).toStringAsFixed(1)}°',
-              ),
-              _buildDetailRow(
-                'Temperature',
-                _formatTemperature(point['temperature'] as double),
-              ),
-              _buildDetailRow(
-                'Latitude',
-                (point['latitude'] as double).toStringAsFixed(4),
-              ),
-              _buildDetailRow(
-                'Longitude',
-                (point['longitude'] as double).toStringAsFixed(4),
-              ),
-              _buildDetailRow('Time', point['time'].toString()),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Route Point Details',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                _buildDetailRow(
+                  'Wind Speed',
+                  '${(point['windSpeed'] as double).toStringAsFixed(1)} m/s',
+                ),
+                _buildDetailRow(
+                  'Wind Direction',
+                  '${(point['windDirection'] as double).toStringAsFixed(1)}°',
+                ),
+                _buildDetailRow(
+                  'Temperature',
+                  _formatTemperature(point['temperature'] as double),
+                ),
+                _buildDetailRow(
+                  'Latitude',
+                  (point['latitude'] as double).toStringAsFixed(4),
+                ),
+                _buildDetailRow(
+                  'Longitude',
+                  (point['longitude'] as double).toStringAsFixed(4),
+                ),
+                _buildDetailRow('Time', point['time'].toString()),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

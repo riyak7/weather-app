@@ -13,6 +13,8 @@ class CurrentLocationView extends StatelessWidget {
   const CurrentLocationView({super.key});
 
   Future<List<Map<String, dynamic>>> getForecast() async {
+    List<Map<String, dynamic>> hourlyData = (await WeatherData.getSingleData(0.0,0.0)).values.toList();
+    hourlyData.length = 24; // only take 24 hours for the hourly forecast
     Position position = await LocationUtils.determinePosition();
     String town = await LocationUtils.getCurrentAddress(position);
     Map<DateTime, List<Map<String, dynamic>>> forecastData = await WeatherData.getMultipleData(WeatherData.locationsFromCoordList([(position.latitude, position.longitude)]));
@@ -65,29 +67,30 @@ class CurrentLocationView extends StatelessWidget {
               ),
             ),
             child: SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            /*FutureBuilder<String>(
-                                future: town,
-                                builder: (context, snapshot) {
-                                  if(snapshot.connectionState == ConnectionState.waiting) {
-                                    return const CircularProgressIndicator();
-                                  }
-                                  
-                                  if(snapshot.hasError) {
-                                    return Text(
-                                      "Error: ${snapshot.error}",
-                                      style: const TextStyle(color: Colors.white, fontSize: 28)
-                                    );
-                                  }
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              /*FutureBuilder<String>(
+                                  future: town,
+                                  builder: (context, snapshot) {
+                                    if(snapshot.connectionState == ConnectionState.waiting) {
+                                      return const CircularProgressIndicator();
+                                    }
+                                    
+                                    if(snapshot.hasError) {
+                                      return Text(
+                                        "Error: ${snapshot.error}",
+                                        style: const TextStyle(color: Colors.white, fontSize: 28)
+                                      );
+                                    }
 
                             */Text(
                                 town,
@@ -142,16 +145,16 @@ class CurrentLocationView extends StatelessWidget {
                           top: Radius.circular(30),
                         ),
                       ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
+                      child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Hourly Forecast',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            const Center(
+                              child: Text(
+                                'Hourly Forecast',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -176,11 +179,14 @@ class CurrentLocationView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            const Text(
-                              '7-Day Forecast',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            const Center(
+                              child: Text(
+                                '7-Day Forecast',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -259,11 +265,10 @@ class CurrentLocationView extends StatelessWidget {
                               ],
                             ),
                           ],
-                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
