@@ -98,92 +98,84 @@ class _MainAppState extends State<MainApp> {
                                 final isSelected =
                                     selectedTime.day == day.day;
 
-                                return GestureDetector(
-                                  onTap: () => setState(() {
-                                    selectedTime = DateTime(
-                                      day.year,
-                                      day.month,
-                                      day.day,
-                                      selectedTime.hour,
-                                    );
-                                  }),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? const Color.fromARGB(
-                                              255,
-                                              100,
-                                              149,
-                                              190,
-                                            )
-                                          : Colors.transparent,
-                                      borderRadius:
-                                          BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      label,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.black54,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
-
-                            const SizedBox(height: 6),
-
-                            Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Hour',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                Text(
-                                  '${selectedTime.hour.toString().padLeft(2, '0')}:00',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            Slider(
-                              min: 0,
-                              max: 23,
-                              divisions: 23,
-                              value: selectedTime.hour.toDouble(),
-                              onChanged: (val) => setState(() {
-                                selectedTime = DateTime(
-                                  selectedTime.year,
-                                  selectedTime.month,
-                                  selectedTime.day,
-                                  val.toInt(),
-                                );
-                              }),
-                            ),
-                          ],
+                  return GestureDetector(
+                    onTap: () => setState(() {
+                      selectedTime = DateTime(
+                        day.year,
+                        day.month,
+                        day.day,
+                        selectedTime.hour,
+                      );
+                      reactiveSelectedTime.value = DateTime(
+                        day.year,
+                        day.month,
+                        day.day,
+                        selectedTime.hour,
+                      );
+                    }),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color.fromARGB(255, 100, 149, 190)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? Colors.white : Colors.black54,
                         ),
-                      )
-                    : null,
-              );
-            },
-          );
-        },
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Hour',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                  ),
+                  Text(
+                    '${selectedTime.hour.toString().padLeft(2, '0')}:00',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                min: 0,
+                max: 23,
+                divisions: 23,
+                value: selectedTime.hour.toDouble(),
+                onChanged: (val) => setState(() {
+                  selectedTime = DateTime(
+                    selectedTime.year,
+                    selectedTime.month,
+                    selectedTime.day,
+                    val.toInt(),
+                  );
+                  reactiveSelectedTime.value = DateTime(
+                    selectedTime.year,
+                    selectedTime.month,
+                    selectedTime.day,
+                    val.toInt(),
+                  );
+                }),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
