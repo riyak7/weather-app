@@ -26,7 +26,25 @@ class _MapViewState extends State<MapView> {
     _loadPointData();
   }
 
-  Future<void> _loadPointData() async {
+  DateTime _roundToNearestHour(DateTime dateTime) {
+    if (dateTime.minute < 30) {
+      return DateTime(
+        dateTime.year,
+        dateTime.month,
+        dateTime.day,
+        dateTime.hour,
+      );
+    } else {
+      return DateTime(
+        dateTime.year,
+        dateTime.month,
+        dateTime.day,
+        dateTime.hour + 1,
+      );
+    }
+  }
+
+  Future<void> _loadPointData({DateTime? time}) async {
     if (widget.gpxData == null) return;
 
     setState(() {
@@ -36,13 +54,54 @@ class _MapViewState extends State<MapView> {
     try {
       List<(double, double)> routeCoords = _extractCoordinatesFromGpx();
       if (routeCoords.isNotEmpty) {
-        final data = await WeatherData.getRouteData(routeCoords);
+        final roundedTime = _roundToNearestHour(
+          time ?? DateTime.now(),
+        ); //gotta round idk
+        final data = await WeatherData.getRouteData(routeCoords, roundedTime);
         setState(() {
           pointData = data;
         });
       }
     } catch (e) {
       print('Error loading point data: $e');
+    } finally {
+      setState(() {
+        isLoadingPoints = false;
+      });
+    }
+  }
+
+  Future<void> _updatePointTime(
+    Map<String, dynamic> point,
+    DateTime newTime,
+  ) async {
+    setState(() {
+      isLoadingPoints = true;
+    });
+
+    try {
+      final lat = point['latitude'] as double;
+      final lon = point['longitude'] as double;
+      final roundedTime = _roundToNearestHour(newTime);
+
+      final data = await WeatherData.getRouteData([(lat, lon)], roundedTime);
+
+      if (data.isNotEmpty) {
+        final newPointData = data[0];
+
+        // Find and the point
+        final index = pointData.indexWhere(
+          (p) => p['latitude'] == lat && p['longitude'] == lon,
+        );
+
+        if (index != -1) {
+          setState(() {
+            pointData[index] = newPointData;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error updating point time: $e');
     } finally {
       setState(() {
         isLoadingPoints = false;
@@ -86,38 +145,9 @@ class _MapViewState extends State<MapView> {
   }
 
   List<LatLng> _extractPointsFromGpx() {
-    if (widget.gpxData == null) return [];
-
-    List<LatLng> points = [];
-
-    // Extract track points
-    for (var trk in widget.gpxData!.trks) {
-      for (var seg in trk.trksegs) {
-        for (var pt in seg.trkpts) {
-          if (pt.lat != null && pt.lon != null) {
-            points.add(LatLng(pt.lat!, pt.lon!));
-          }
-        }
-      }
-    }
-
-    // Extract route points
-    for (var rte in widget.gpxData!.rtes) {
-      for (var pt in rte.rtepts) {
-        if (pt.lat != null && pt.lon != null) {
-          points.add(LatLng(pt.lat!, pt.lon!));
-        }
-      }
-    }
-
-    // Extract waypoints
-    for (var wpt in widget.gpxData!.wpts) {
-      if (wpt.lat != null && wpt.lon != null) {
-        points.add(LatLng(wpt.lat!, wpt.lon!));
-      }
-    }
-
-    return points;
+    return _extractCoordinatesFromGpx()
+        .map((coord) => LatLng(coord.$1, coord.$2))
+        .toList();
   }
 
   LatLng _calculateCenter() {
@@ -177,6 +207,7 @@ class _MapViewState extends State<MapView> {
     }).toList();
   }
 
+  //dont touch. ts took me ages. i will find you.
   void _showPointDetails(Map<String, dynamic> point) {
     showModalBottomSheet(
       context: context,
@@ -193,7 +224,10 @@ class _MapViewState extends State<MapView> {
                   children: [
                     const Text(
                       'Route Point Details',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -230,6 +264,15 @@ class _MapViewState extends State<MapView> {
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _selectNewTime(context, point),
+                    icon: const Icon(Icons.access_time),
+                    label: const Text('Change Time'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Close'),
@@ -243,7 +286,41 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  // request already handles units, don't need to manually convert after - ben
+  Future<void> _selectNewTime(
+    BuildContext context,
+    Map<String, dynamic> point,
+  ) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 7)),
+    ); // looks buns but its built and i cba
+
+    if (pickedDate != null && context.mounted) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        final DateTime selectedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        await _updatePointTime(point, selectedDateTime);
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      }
+    }
+  }
+
+  // request already handles units, don't need to manually convert after - ben.
+  // fuck u ben no it didn't. why did u keep the if statement dumb ass
   String _formatTemperature(double temp) {
     if (isCelsius) {
       return '${temp.toStringAsFixed(1)}°C';
