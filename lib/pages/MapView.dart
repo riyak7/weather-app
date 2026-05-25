@@ -207,6 +207,10 @@ class _MapViewState extends State<MapView> {
                   UnitConversionUtils.windSpeed(point['windSpeed']),
                 ),
                 _buildDetailRow(
+                  'Gust Speed',
+                  UnitConversionUtils.windSpeed(point['gustSpeed']),
+                ),
+                _buildDetailRow(
                   'Wind Direction',
                   '${(point['windDirection'] as double).toStringAsFixed(1)}°',
                 ),
