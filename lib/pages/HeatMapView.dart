@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -8,6 +7,7 @@ import 'package:weather_app_sailing/utils/HeatMapUtils.dart';
 import 'dart:async';
 
 import 'package:weather_app_sailing/utils/WeatherData.dart';
+import 'package:weather_app_sailing/globals.dart';
 
 // We use a stateful widget so that we get access to the destructor
 // so we can free memory to avoid leaks when widget destroyed.
@@ -36,11 +36,19 @@ class _HeatMapViewState extends State<HeatMapView> {
   Timer? _timer;
   final Duration _debounceDuration = Duration(milliseconds: 500);
 
-  // The size of the grid we render 10x10 = 100 tiles and arrows rendered
+  // The size of the grid we render 15*15 = 225 tiles and arrows rendered
   static final _gridSize = 10;
 
   // Our grid is blocky, we need to blur to make it look nice
   static final _blur = 24.0;
+
+  // Global rawData var so we don't have to keep calling the api when
+  // we are just changing the time
+  // `late` to signify we will initialise this later
+  late Map<DateTime, Set<(num, num, num, num)>> rawData;
+
+  // The current viewing area in LatLngs
+  late LatLngBounds bounds;
 
   // Clean up on deletion
   @override
@@ -60,7 +68,7 @@ class _HeatMapViewState extends State<HeatMapView> {
         initialCenter: const LatLng(51.509364, -0.128928), // London, UK
         initialZoom: 5.2,
 
-        // Update heatmap and data when the map view changes,
+        // Update heatmap and data when the map view changes (or initialised),
         // needs to be debounced to prevent spamming api calls
         onMapEvent: (event) {
           if (event is MapEventMoveEnd ||
@@ -74,25 +82,26 @@ class _HeatMapViewState extends State<HeatMapView> {
             // Now create a new one that runs remake heatmap after _debounceDuration milliseconds
             _timer?.cancel();
             _timer = Timer(_debounceDuration, () async {
-              var bounds = event.camera.visibleBounds;
+              // Update the bounds
+              bounds = event.camera.visibleBounds;
 
               // Get raw data
-              var rawData = await WeatherData.getWindData(
+              rawData = await WeatherData.getWindData(
                 WeatherData.locationsFromGrid(bounds.north, bounds.west, bounds.south, bounds.east, _gridSize, _gridSize),
               );
 
               if (!mounted) return; // if user switches screen before await returns, will be disposed of, giving an error when it actually does return
 
-              // TODO, currently we just look at the first time but we should look at the current time
               if (rawData.values.isNotEmpty) {
                 // Using the data fetched from the api create the heatmap and the arrows
-                // 1.07 scaling needed because without it tiles too small, idk why
                 double gridWidth = (bounds.east - bounds.west)/_gridSize;
                 double gridHeight = (bounds.north - bounds.south)/_gridSize;
 
                 // Converts the raw data to polygon data that can be drawn to a map
+                print(selectedTime);
+                print(rawData);
                 _heatmapTiles.value = rawToPolygon(
-                  rawData.values.first,
+                  rawData[selectedTime]!,
                   gridWidth,
                   gridHeight,
                 );

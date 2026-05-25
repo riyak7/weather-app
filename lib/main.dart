@@ -89,6 +89,12 @@ class _MainAppState extends State<MainApp> {
                         day.day,
                         selectedTime.hour,
                       );
+                      reactiveSelectedTime.value = DateTime(
+                        day.year,
+                        day.month,
+                        day.day,
+                        selectedTime.hour,
+                      );
                     }),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -137,6 +143,12 @@ class _MainAppState extends State<MainApp> {
                 value: selectedTime.hour.toDouble(),
                 onChanged: (val) => setState(() {
                   selectedTime = DateTime(
+                    selectedTime.year,
+                    selectedTime.month,
+                    selectedTime.day,
+                    val.toInt(),
+                  );
+                  reactiveSelectedTime.value = DateTime(
                     selectedTime.year,
                     selectedTime.month,
                     selectedTime.day,
