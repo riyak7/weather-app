@@ -1,6 +1,7 @@
 import "dart:math";
-import 'package:flutter/material.dart';
 import "package:flutter/foundation.dart";
+import 'package:flutter/material.dart';
+import "package:geolocator/geolocator.dart";
 import "../utils/LocationUtils.dart";
 import "../utils/UnitConversionUtils.dart";
 import "../widgets/WindCompass.dart";
@@ -12,9 +13,13 @@ class CurrentLocationView extends StatelessWidget {
   const CurrentLocationView({super.key});
 
   Future<List<Map<String, dynamic>>> getForecast() async {
-    Map<DateTime, List<Map<String, dynamic>>> forecastData = await WeatherData.getMultipleData(WeatherData.locationsFromCoordList([(0, 0)]));
+    Position position = await LocationUtils.determinePosition();
+    String town = await LocationUtils.getCurrentAddress(position);
+    Map<DateTime, List<Map<String, dynamic>>> forecastData = await WeatherData.getMultipleData(WeatherData.locationsFromCoordList([(position.latitude, position.longitude)]));
+      // TO DO: CHANGE THIS TO THE ACTUAL CO-ORDINATES OF THE CURRENT LOCATION, NOT JUST (0, 0)
     List<Map<String, dynamic>> hourlyData = forecastData.values.expand((x) => x).toList();
-    hourlyData.length = 24; // only take 24 hours for the hourly forecast
+    hourlyData.add({"town": town}); // Add the town name to the data so we can display it in the UI
+    print(hourlyData);
     return hourlyData;
   }
 
@@ -22,7 +27,6 @@ class CurrentLocationView extends StatelessWidget {
   Widget build(BuildContext context){
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: getForecast(),
       builder: (context, snapshot) {
@@ -38,9 +42,18 @@ class CurrentLocationView extends StatelessWidget {
         }
 
         List<Map<String, dynamic>> forecastData = snapshot.data ?? [];
+        String town = forecastData.isNotEmpty ? forecastData.removeLast()["town"] : "Unknown Location";
         double lowTemp = forecastData.map((e) => e["temperature"] as double).reduce(min);
         double highTemp = forecastData.map((e) => e["temperature"] as double).reduce(max);
         double windDirection = forecastData.isNotEmpty ? forecastData[0]["windDirection"] as double : 0.0;
+
+        DateTime datetime = DateTime.now();
+        datetime = DateTime(datetime.year, datetime.month, datetime.day, datetime.hour); // Round down to the nearest hour for comparison with forecast data
+        print("Current datetime: $datetime");
+
+        forecastData.removeWhere(
+          (map) => map["time"].isBefore(datetime)
+        );
 
         return Scaffold(
           body: Container(
@@ -62,8 +75,8 @@ class CurrentLocationView extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            FutureBuilder<String>(
-                                future: LocationUtils.town,
+                            /*FutureBuilder<String>(
+                                future: town,
                                 builder: (context, snapshot) {
                                   if(snapshot.connectionState == ConnectionState.waiting) {
                                     return const CircularProgressIndicator();
@@ -76,15 +89,13 @@ class CurrentLocationView extends StatelessWidget {
                                     );
                                   }
 
-                                  return Text(
-                                    snapshot.data ?? "Unknown Location",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                    )
-                                  );     
-                                }      
+                            */Text(
+                                town,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                              )
                             ),
                             Text(
                               'Mon, Mar 2',
@@ -95,10 +106,6 @@ class CurrentLocationView extends StatelessWidget {
                             ),
                           ],
                         ),
-                        /*IconButton(
-                          icon: const Icon(Icons.menu, color: Colors.white),
-                          onPressed: () {},
-                        ), REMOVE THIS --> THIS IS THREE BARS, NOT NEEDED */
                       ],
                     ),
                   ),
@@ -158,7 +165,7 @@ class CurrentLocationView extends StatelessWidget {
                                     context,
                                     time: index == 0
                                         ? 'Now'
-                                        : '$index${index < 12 ? 'AM' : 'PM'}',
+                                        : '${forecastData[index]["time"].hour < 12 ? forecastData[index]["time"].hour : forecastData[index]["time"].hour - 12}${forecastData[index]["time"].hour < 12 ? 'AM' : 'PM'}',
                                     temp: '${UnitConversionUtils.temp(forecastData[index]["temperature"])}°\n${UnitConversionUtils.windSpeed(forecastData[index]["windSpeed"])}',
                                     icon: index < 6
                                         ? Icons.wb_cloudy

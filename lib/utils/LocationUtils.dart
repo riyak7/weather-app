@@ -6,9 +6,6 @@ import "package:http/http.dart" as http;
 
 class LocationUtils {
 
-  //static final position = determinePosition();
-  static final town = getCurrentAddress();
-
   static Future<Position> determinePosition() async {
     LocationPermission permission;
     bool serviceEnabled;
@@ -46,19 +43,18 @@ class LocationUtils {
     return await Geolocator.getCurrentPosition();
   }
 
-  static Future<String> getCurrentAddress() async {
+  static Future<String> getCurrentAddress(Position position) async {
     if(kIsWeb) {
-      return await _getCurrentAddressWeb();
+      return await _getCurrentAddressWeb(position);
     } else {
-      return await _getCurrentAddressMobile();
+      return await _getCurrentAddressMobile(position);
     }
   }
 
 
   // Uses OpenStreetMap's Nominatim API to reverse geocode the coordinates into an address. For web only.
-  static Future<String> _getCurrentAddressWeb() async {
+  static Future<String> _getCurrentAddressWeb(Position position) async {
     try {
-      Position position = await determinePosition();
       final url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.latitude}&lon=${position.longitude}&addressdetails=1";
       final response = await http.get(
         Uri.parse(url),
@@ -81,12 +77,9 @@ class LocationUtils {
   }
 
   // Uses geocoding package to reverse geocode the coordinates into an address. For mobile only.
-  static Future<String> _getCurrentAddressMobile() async {
+  static Future<String> _getCurrentAddressMobile(Position position) async {
     try {
-        Position position = await determinePosition();
-        debugPrint("Position: $position");
         List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-        debugPrint("Placemarks: $placemarks");
 
         if(placemarks.isEmpty) {
           return "No address found";
