@@ -8,7 +8,7 @@ There are a 2 main options for running the code
     ``flutter run``
 
 
-### Option 1: Build to apk on phone
+### Option 2: Build to apk on phone
     with flutter and android studio installed,
     ``flutter build apk``
     ``flutter install``
