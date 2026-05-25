@@ -40,46 +40,63 @@ class _MainAppState extends State<MainApp> {
     return DefaultTabController(
       length: tabs.length,
 
-      child: Scaffold(
-        // Top bar
-        appBar: AppBar(
-          title: const TabBar(
-            tabs: tabs,
-            dividerColor: Colors.transparent,
-            labelPadding: EdgeInsets.only(bottom: 5.0),
-          ),
-        ),
+      child: Builder(
+        builder: (context) {
+          final controller = DefaultTabController.of(context)!;
 
-        // The actual content
-        body: TabBarView(
-          children: [
-            HeatMapView(),
-            CurrentLocationView(),
-            RouteView(),
-            SettingsView(),
-          ],
-        ),
+          return AnimatedBuilder(
+            animation: controller,
+            builder: (context, _) {
+              return Scaffold(
+                // Top bar
+                appBar: AppBar(
+                  title: const TabBar(
+                    tabs: tabs,
+                    dividerColor: Colors.transparent,
+                    labelPadding: EdgeInsets.only(bottom: 5.0),
+                  ),
+                ),
 
-        bottomNavigationBar: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: const Color.fromARGB(255, 205, 216, 228),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(7, (i) {
-                  final day = DateTime.now().add(Duration(days: i));
-                  final label = [
-                    'Mon',
-                    'Tue',
-                    'Wed',
-                    'Thu',
-                    'Fri',
-                    'Sat',
-                    'Sun',
-                  ][day.weekday - 1];
-                  final isSelected = selectedTime.day == day.day;
+                // The actual content
+                body: TabBarView(
+                  children: [
+                    HeatMapView(),
+                    CurrentLocationView(),
+                    RouteView(),
+                    SettingsView(),
+                  ],
+                ),
+
+                // ONLY SHOW ON MAP TAB
+                bottomNavigationBar: controller.index == 0
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        color: const Color.fromARGB(255, 205, 216, 228),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceEvenly,
+                              children: List.generate(7, (i) {
+                                final day =
+                                    DateTime.now().add(Duration(days: i));
+
+                                final label = [
+                                  'Mon',
+                                  'Tue',
+                                  'Wed',
+                                  'Thu',
+                                  'Fri',
+                                  'Sat',
+                                  'Sun',
+                                ][day.weekday - 1];
+
+                                final isSelected =
+                                    selectedTime.day == day.day;
 
                   return GestureDetector(
                     onTap: () => setState(() {
@@ -158,8 +175,13 @@ class _MainAppState extends State<MainApp> {
               ),
             ],
           ),
-        ),
-      ),
+                    ) : null,
+              );
+            },
+          );
+        },
+      ),       
+
     );
   }
 }
