@@ -42,12 +42,31 @@ class CurrentLocationView extends StatelessWidget {
         }
 
         List<Map<String, dynamic>> forecastData = snapshot.data ?? [];
+        List<List<Map<String, dynamic>>> groupedData = [];
         String town = forecastData.isNotEmpty ? forecastData.removeLast()["town"] : "Unknown Location";
-        double lowTemp = forecastData.map((e) => e["temperature"] as double).reduce(min);
-        double highTemp = forecastData.map((e) => e["temperature"] as double).reduce(max);
         double windDirection = forecastData.isNotEmpty ? forecastData[0]["windDirection"] as double : 0.0;
-
         DateTime datetime = DateTime.now();
+
+        // Partition the forecast into separate lists for each day, to check the L/H for each day
+        int currentDay = datetime.day;
+        for(var map in forecastData) {
+          if(map["time"].day != currentDay) {
+            groupedData.add([map]);
+            currentDay = map["time"].day;
+          } else if(groupedData.isEmpty) {
+            groupedData.add([map]);
+          } else {
+            groupedData.last.add(map);
+          }
+        }
+
+        List<Map<String, double>> dailyHighLows = [];
+        for(int i=0; i<7; i++) {
+          double lowTemp = groupedData[i].map((e) => e["temperature"] as double).reduce(min);
+          double highTemp = groupedData[i].map((e) => e["temperature"] as double).reduce(max);
+          dailyHighLows.add({"lowTemp": lowTemp, "highTemp": highTemp});
+        }
+
         datetime = DateTime(datetime.year, datetime.month, datetime.day, datetime.hour); // Round down to the nearest hour for comparison with forecast data
         print("Current datetime: $datetime");
 
@@ -125,7 +144,7 @@ class CurrentLocationView extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    forecastData.isNotEmpty ? 'H: ${UnitConversionUtils.tempWithUnit(highTemp)} L: ${UnitConversionUtils.tempWithUnit(lowTemp)}' : 'L: --° H: --°',
+                    forecastData.isNotEmpty ? 'H: ${UnitConversionUtils.tempWithUnit(dailyHighLows[0]["highTemp"]!)} L: ${UnitConversionUtils.tempWithUnit(dailyHighLows[0]["lowTemp"]!)}' : 'L: --° H: --°',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 16,
@@ -189,44 +208,44 @@ class CurrentLocationView extends StatelessWidget {
                             const SizedBox(height: 16),
                             _buildDayForecast(
                               'Today',
-                              72,
-                              62,
+                              dailyHighLows[0]["highTemp"]!,
+                              dailyHighLows[0]["lowTemp"]!,
                               Icons.wb_sunny,
                               isDark,
                             ),
                             _buildDayForecast(
                               'Tue',
-                              74,
-                              64,
+                              dailyHighLows[1]["highTemp"]!,
+                              dailyHighLows[1]["lowTemp"]!,
                               Icons.wb_cloudy,
                               isDark,
                             ),
                             _buildDayForecast(
                               'Wed',
-                              70,
-                              58,
+                              dailyHighLows[2]["highTemp"]!,
+                              dailyHighLows[2]["lowTemp"]!,
                               Icons.umbrella,
                               isDark,
                             ),
-                            _buildDayForecast('Thu', 68, 56, Icons.grain, isDark),
+                            _buildDayForecast('Thu', dailyHighLows[3]["highTemp"]!, dailyHighLows[3]["lowTemp"]!, Icons.grain, isDark),
                             _buildDayForecast(
                               'Fri',
-                              71,
-                              60,
+                              dailyHighLows[4]["highTemp"]!,
+                              dailyHighLows[4]["lowTemp"]!,
                               Icons.wb_cloudy,
                               isDark,
                             ),
                             _buildDayForecast(
                               'Sat',
-                              75,
-                              65,
+                              dailyHighLows[5]["highTemp"]!,
+                              dailyHighLows[5]["lowTemp"]!,
                               Icons.wb_sunny,
                               isDark,
                             ),
                             _buildDayForecast(
                               'Sun',
-                              76,
-                              66,
+                              dailyHighLows[6]["highTemp"]!,
+                              dailyHighLows[6]["lowTemp"]!,
                               Icons.wb_sunny,
                               isDark,
                             ),
@@ -310,8 +329,8 @@ class CurrentLocationView extends StatelessWidget {
 
   Widget _buildDayForecast(
     String day,
-    int high,
-    int low,
+    double high,
+    double low,
     IconData icon,
     bool isDark,
   ) {
@@ -353,9 +372,9 @@ class CurrentLocationView extends StatelessWidget {
               ],
             ),
           ),
-          Text('$low°'),
+          Text('${UnitConversionUtils.tempWithUnit(low)}'),
           const SizedBox(width: 12),
-          Text('$high°', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('${UnitConversionUtils.tempWithUnit(high)}', style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
     );
