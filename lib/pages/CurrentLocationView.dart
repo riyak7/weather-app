@@ -1,6 +1,5 @@
 import "dart:math";
 import 'package:flutter/material.dart';
-import "package:flutter/foundation.dart";
 import "../utils/LocationUtils.dart";
 import "../utils/UnitConversionUtils.dart";
 import "../widgets/WindCompass.dart";
@@ -12,8 +11,7 @@ class CurrentLocationView extends StatelessWidget {
   const CurrentLocationView({super.key});
 
   Future<List<Map<String, dynamic>>> getForecast() async {
-    Map<DateTime, List<Map<String, dynamic>>> forecastData = await WeatherData.getMultipleData(WeatherData.locationsFromCoordList([(0, 0)]));
-    List<Map<String, dynamic>> hourlyData = forecastData.values.expand((x) => x).toList();
+    List<Map<String, dynamic>> hourlyData = (await WeatherData.getSingleData(0.0,0.0)).values.toList();
     hourlyData.length = 24; // only take 24 hours for the hourly forecast
     return hourlyData;
   }
@@ -52,99 +50,98 @@ class CurrentLocationView extends StatelessWidget {
               ),
             ),
             child: SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FutureBuilder<String>(
-                                future: LocationUtils.town,
-                                builder: (context, snapshot) {
-                                  if(snapshot.connectionState == ConnectionState.waiting) {
-                                    return const CircularProgressIndicator();
-                                  }
-                                  
-                                  if(snapshot.hasError) {
-                                    return Text(
-                                      "Error: ${snapshot.error}",
-                                      style: const TextStyle(color: Colors.white, fontSize: 28)
-                                    );
-                                  }
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FutureBuilder<String>(
+                                  future: LocationUtils.town,
+                                  builder: (context, snapshot) {
+                                    if(snapshot.connectionState == ConnectionState.waiting) {
+                                      return const CircularProgressIndicator();
+                                    }
+                                    
+                                    if(snapshot.hasError) {
+                                      return Text(
+                                        "Error: ${snapshot.error}",
+                                        style: const TextStyle(color: Colors.white, fontSize: 28)
+                                      );
+                                    }
 
-                                  return Text(
-                                    snapshot.data ?? "Unknown Location",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                    )
-                                  );     
-                                }      
-                            ),
-                            Text(
-                              'Mon, Mar 2',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 16,
+                                    return Text(
+                                      snapshot.data ?? "Unknown Location",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                      )
+                                    );     
+                                  }      
                               ),
-                            ),
-                          ],
-                        ),
-                        /*IconButton(
-                          icon: const Icon(Icons.menu, color: Colors.white),
-                          onPressed: () {},
-                        ), REMOVE THIS --> THIS IS THREE BARS, NOT NEEDED */
-                      ],
+                              Text(
+                                'Mon, Mar 2',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          /*IconButton(
+                            icon: const Icon(Icons.menu, color: Colors.white),
+                            onPressed: () {},
+                          ), REMOVE THIS --> THIS IS THREE BARS, NOT NEEDED */
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    forecastData.isNotEmpty ? UnitConversionUtils.tempWithUnit(forecastData[0]["temperature"]) : ("--" + (isCelsius ? "°C" : "°F")),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 96,
-                      fontWeight: FontWeight.w200,
+                    const SizedBox(height: 20),
+                    Text(
+                      forecastData.isNotEmpty ? UnitConversionUtils.tempWithUnit(forecastData[0]["temperature"]) : ("--" + (isCelsius ? "°C" : "°F")),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 96,
+                        fontWeight: FontWeight.w200,
+                      ),
                     ),
-                  ),
-                  const Text(
-                    'Partly Cloudy',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    forecastData.isNotEmpty ? 'H: ${UnitConversionUtils.tempWithUnit(highTemp)} L: ${UnitConversionUtils.tempWithUnit(lowTemp)}' : 'L: --° H: --°',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 16,
+                    const Text(
+                      'Partly Cloudy',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
                     ),
-                  ),
-                  WindCompass(
-                    degrees: windDirection
-                  ),
-                  const SizedBox(height: 40),
-                  Expanded(
-                    child: Container(
+                    const SizedBox(height: 8),
+                    Text(
+                      forecastData.isNotEmpty ? 'H: ${UnitConversionUtils.tempWithUnit(highTemp)} L: ${UnitConversionUtils.tempWithUnit(lowTemp)}' : 'L: --° H: --°',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: 16,
+                      ),
+                    ),
+                    WindCompass(
+                      degrees: windDirection
+                    ),
+                    const SizedBox(height: 40), Container(
                       decoration: BoxDecoration(
                         color: isDark ? Colors.grey[900] : Colors.white,
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(30),
                         ),
                       ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
+                      child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Hourly Forecast',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            const Center(
+                              child: Text(
+                                'Hourly Forecast',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -169,11 +166,14 @@ class CurrentLocationView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            const Text(
-                              '7-Day Forecast',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            const Center(
+                              child: Text(
+                                '7-Day Forecast',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -252,11 +252,10 @@ class CurrentLocationView extends StatelessWidget {
                               ],
                             ),
                           ],
-                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

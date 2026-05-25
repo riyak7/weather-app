@@ -81,6 +81,8 @@ class _HeatMapViewState extends State<HeatMapView> {
                 WeatherData.locationsFromGrid(bounds.north, bounds.west, bounds.south, bounds.east, _gridSize, _gridSize),
               );
 
+              if (!mounted) return; // if user switches screen before await returns, will be disposed of, giving an error when it actually does return
+
               // TODO, currently we just look at the first time but we should look at the current time
               if (rawData.values.isNotEmpty) {
                 // Using the data fetched from the api create the heatmap and the arrows
