@@ -1,3 +1,4 @@
 bool isCelsius = true;
-bool isKnots = false; // need to add button to change
+bool isKnots = false;
 var importedGpxData;
+DateTime selectedTime = DateTime.now();
