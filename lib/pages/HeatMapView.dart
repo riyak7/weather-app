@@ -83,7 +83,6 @@ class _HeatMapViewState extends State<HeatMapView> {
 
               // TODO, currently we just look at the first time but we should look at the current time
               if (rawData.values.isNotEmpty) {
-                print(rawData.values.first.length);
                 // Using the data fetched from the api create the heatmap and the arrows
                 // 1.07 scaling needed because without it tiles too small, idk why
                 double gridWidth = (bounds.east - bounds.west)/_gridSize;
@@ -121,7 +120,7 @@ class _HeatMapViewState extends State<HeatMapView> {
           valueListenable: _heatmapTiles,
           builder: (context, polygons, child) {
             return ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              imageFilter: ImageFilter.blur(sigmaX: _blur, sigmaY: _blur),
               child: PolygonLayer(polygons: polygons)
             );
           },

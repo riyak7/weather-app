@@ -1,12 +1,24 @@
 import "../globals.dart";
 
 class UnitConversionUtils {
-  // Assuming temperature by default is in Celsius, convert to Fahrenheit if needed.
-  static int temp(int tempC) {
+  static String temp(double tempC) {
+    return tempC.round().toString();
+  }
+
+  static String tempWithUnit(double tempC) {
     if(isCelsius) {
-      return tempC;
+      return tempC.round().toString() + "°C";
     } else {
-      return (1.4*tempC + 32).round();
+      return tempC.round().toString() + "°F";
     }
   }
+
+  static String windSpeed(double windKnots) {
+    if(isKnots) {
+      return windKnots.round().toString() + "kn";
+    } else {
+      return windKnots.round().toString() + "m/s";
+    }
+  }
+
 }
