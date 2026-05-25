@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:weather_app_sailing/utils/UnitConversionUtils.dart';
 import '../utils/WeatherData.dart';
 import '../globals.dart';
 
@@ -203,7 +204,7 @@ class _MapViewState extends State<MapView> {
                 const SizedBox(height: 16),
                 _buildDetailRow(
                   'Wind Speed',
-                  '${(point['windSpeed'] as double).toStringAsFixed(1)} m/s',
+                  UnitConversionUtils.windSpeed(point['windSpeed']),
                 ),
                 _buildDetailRow(
                   'Wind Direction',

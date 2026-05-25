@@ -36,7 +36,7 @@ class _HeatMapViewState extends State<HeatMapView> {
   Timer? _timer;
   final Duration _debounceDuration = Duration(milliseconds: 500);
 
-  // The size of the grid we render 15*15 = 225 tiles and arrows rendered
+  // The size of the grid we render 10x10 = 100 tiles and arrows rendered
   static final _gridSize = 10;
 
   // Our grid is blocky, we need to blur to make it look nice

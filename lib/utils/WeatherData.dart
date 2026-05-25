@@ -32,6 +32,7 @@ class WeatherData {
         OpenMeteoLocation(latitude:  (latitudeTopLeft + (0.5+(i % samplesLatitude)) * (latitudeBottomRight-latitudeTopLeft) / (samplesLatitude)), 
                           longitude: (longitudeTopLeft + (0.5+(i ~/ samplesLatitude)) * (longitudeBottomRight-longitudeTopLeft) / (samplesLongitude)) )
     ];
+    // Note this returns coordinates at the centre of each box 
   }
 
 
