@@ -15,11 +15,8 @@ class CurrentLocationView extends StatelessWidget {
   Future<List<Map<String, dynamic>>> getForecast() async {
     Position position = await LocationUtils.determinePosition();
     String town = await LocationUtils.getCurrentAddress(position);
-    Map<DateTime, List<Map<String, dynamic>>> forecastData = await WeatherData.getMultipleData(WeatherData.locationsFromCoordList([(position.latitude, position.longitude)]));
-      // TO DO: CHANGE THIS TO THE ACTUAL CO-ORDINATES OF THE CURRENT LOCATION, NOT JUST (0, 0)
-    List<Map<String, dynamic>> hourlyData = forecastData.values.expand((x) => x).toList();
+    List<Map<String, dynamic>> hourlyData = (await WeatherData.getSingleData(position.latitude, position.longitude)).values.toList();
     hourlyData.add({"town": town}); // Add the town name to the data so we can display it in the UI
-    print(hourlyData);
     return hourlyData;
   }
 
