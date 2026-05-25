@@ -35,10 +35,8 @@ class _MapViewState extends State<MapView> {
 
     try {
       List<(double, double)> routeCoords = _extractCoordinatesFromGpx();
-
       if (routeCoords.isNotEmpty) {
         final data = await WeatherData.getRouteData(routeCoords);
-
         setState(() {
           pointData = data;
         });
@@ -124,17 +122,12 @@ class _MapViewState extends State<MapView> {
 
   LatLng _calculateCenter() {
     List<LatLng> points = _extractPointsFromGpx();
-
-    if (points.isEmpty) {
-      return const LatLng(51.509364, -0.128928);
-    }
+    if (points.isEmpty) return const LatLng(51.509364, -0.128928);
 
     double avgLat =
         points.fold(0.0, (sum, pt) => sum + pt.latitude) / points.length;
-
     double avgLon =
         points.fold(0.0, (sum, pt) => sum + pt.longitude) / points.length;
-
     return LatLng(avgLat, avgLon);
   }
 
@@ -152,7 +145,6 @@ class _MapViewState extends State<MapView> {
             setState(() {
               selectedPoint = point;
             });
-
             _showPointDetails(point);
           },
           child: Container(
@@ -162,7 +154,7 @@ class _MapViewState extends State<MapView> {
               border: Border.all(color: Colors.white, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 4,
                   spreadRadius: 1,
                 ),
@@ -197,15 +189,11 @@ class _MapViewState extends State<MapView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Route Point Details',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
@@ -213,54 +201,33 @@ class _MapViewState extends State<MapView> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
-
                 _buildDetailRow(
                   'Wind Speed',
-                  UnitConversionUtils.windSpeed(
-                    point['windSpeed'],
-                  ),
+                  UnitConversionUtils.windSpeed(point['windSpeed']),
                 ),
-
                 _buildDetailRow(
                   'Gust Speed',
-                  UnitConversionUtils.windSpeed(
-                    point['gustSpeed'],
-                  ),
+                  UnitConversionUtils.windSpeed(point['gustSpeed']),
                 ),
-
                 _buildDetailRow(
                   'Wind Direction',
                   '${(point['windDirection'] as double).toStringAsFixed(1)}°',
                 ),
-
                 _buildDetailRow(
                   'Temperature',
-                  _formatTemperature(
-                    point['temperature'] as double,
-                  ),
+                  _formatTemperature(point['temperature'] as double),
                 ),
-
                 _buildDetailRow(
                   'Latitude',
-                  (point['latitude'] as double)
-                      .toStringAsFixed(4),
+                  (point['latitude'] as double).toStringAsFixed(4),
                 ),
-
                 _buildDetailRow(
                   'Longitude',
-                  (point['longitude'] as double)
-                      .toStringAsFixed(4),
+                  (point['longitude'] as double).toStringAsFixed(4),
                 ),
-
-                _buildDetailRow(
-                  'Time',
-                  point['time'].toString(),
-                ),
-
+                _buildDetailRow('Time', point['time'].toString()),
                 const SizedBox(height: 16),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -289,22 +256,12 @@ class _MapViewState extends State<MapView> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
+          Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -314,113 +271,91 @@ class _MapViewState extends State<MapView> {
   @override
   Widget build(BuildContext context) {
     List<LatLng> routePoints = _extractPointsFromGpx();
-
     LatLng center = _calculateCenter();
-
     double zoom = routePoints.isNotEmpty ? 10.0 : 2.2;
 
-    return SafeArea(
-      child: Stack(
-        children: [
-          FlutterMap(
-            options: MapOptions(
-              initialCenter: center,
-              initialZoom: zoom,
+    return Stack(
+      children: [
+        FlutterMap(
+          options: MapOptions(initialCenter: center, initialZoom: zoom),
+          children: [
+            TileLayer(
+              urlTemplate:
+                  'https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png',
+
+              userAgentPackageName: 'com.yourteam.weatherapp',
             ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    'https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png',
-                userAgentPackageName:
-                    'com.yourteam.weatherapp',
-              ),
-
-              if (routePoints.isNotEmpty)
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: routePoints,
-                      strokeWidth: 4.0,
-                      color: Colors.blue,
-                    ),
-                  ],
-                ),
-
-              if (pointData.isNotEmpty)
-                MarkerLayer(
-                  markers: _buildMarkers(),
-                ),
-
-              // Boilerplate below - ignore
-              RichAttributionWidget(
-                alignment:
-                    AttributionAlignment.bottomRight,
-                attributions: [
-                  TextSourceAttribution(
-                    '© CARTO',
-                    onTap: () async {
-                      final Uri url = Uri.parse(
-                        'https://carto.com/help/working-with-data/attribution-requirements/',
-                      );
-
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(
-                          url,
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
-                    },
-                  ),
-
-                  TextSourceAttribution(
-                    '© OpenStreetMap contributors',
-                    onTap: () async {
-                      final Uri url = Uri.parse(
-                        'https://openstreetmap.org/copyright',
-                      );
-
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(
-                          url,
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
-                    },
+            if (routePoints.isNotEmpty)
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: routePoints,
+                    strokeWidth: 4.0,
+                    color: Colors.blue,
                   ),
                 ],
               ),
-            ],
-          ),
-
-          if (isLoadingPoints)
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                    ),
-                  ],
+            if (pointData.isNotEmpty) MarkerLayer(markers: _buildMarkers()),
+            // Boilerplate below - ignore
+            RichAttributionWidget(
+              alignment: AttributionAlignment.bottomRight,
+              attributions: [
+                TextSourceAttribution(
+                  '© CARTO',
+                  onTap: () async {
+                    final Uri url = Uri.parse(
+                      'https://carto.com/help/working-with-data/attribution-requirements/',
+                    );
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
+                  },
                 ),
-                child: const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
+                TextSourceAttribution(
+                  '© OpenStreetMap contributors',
+                  onTap: () async {
+                    final Uri url = Uri.parse(
+                      'https://openstreetmap.org/copyright',
+                    );
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        if (isLoadingPoints)
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
                   ),
-                ),
+                ],
+              ),
+              child: const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
