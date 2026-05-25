@@ -13,8 +13,6 @@ class CurrentLocationView extends StatelessWidget {
   const CurrentLocationView({super.key});
 
   Future<List<Map<String, dynamic>>> getForecast() async {
-    List<Map<String, dynamic>> hourlyData = (await WeatherData.getSingleData(0.0,0.0)).values.toList();
-    hourlyData.length = 24; // only take 24 hours for the hourly forecast
     Position position = await LocationUtils.determinePosition();
     String town = await LocationUtils.getCurrentAddress(position);
     Map<DateTime, List<Map<String, dynamic>>> forecastData = await WeatherData.getMultipleData(WeatherData.locationsFromCoordList([(position.latitude, position.longitude)]));
@@ -137,8 +135,7 @@ class CurrentLocationView extends StatelessWidget {
                     degrees: windDirection
                   ),
                   const SizedBox(height: 40),
-                  Expanded(
-                    child: Container(
+                  Container(
                       decoration: BoxDecoration(
                         color: isDark ? Colors.grey[900] : Colors.white,
                         borderRadius: const BorderRadius.vertical(
