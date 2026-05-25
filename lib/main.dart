@@ -40,113 +40,150 @@ class _MainAppState extends State<MainApp> {
     return DefaultTabController(
       length: tabs.length,
 
-      child: Scaffold(
-        // Top bar
-        appBar: AppBar(
-          title: const TabBar(
-            tabs: tabs,
-            dividerColor: Colors.transparent,
-            labelPadding: EdgeInsets.only(bottom: 5.0),
-          ),
-        ),
+      child: Builder(
+        builder: (context) {
+          final controller = DefaultTabController.of(context)!;
 
-        // The actual content
-        body: TabBarView(
-          children: [
-            HeatMapView(),
-            CurrentLocationView(),
-            RouteView(),
-            SettingsView(),
-          ],
-        ),
+          return AnimatedBuilder(
+            animation: controller,
+            builder: (context, _) {
+              return Scaffold(
+                // Top bar
+                appBar: AppBar(
+                  title: const TabBar(
+                    tabs: tabs,
+                    dividerColor: Colors.transparent,
+                    labelPadding: EdgeInsets.only(bottom: 5.0),
+                  ),
+                ),
 
-        bottomNavigationBar: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: const Color.fromARGB(255, 205, 216, 228),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(7, (i) {
-                  final day = DateTime.now().add(Duration(days: i));
-                  final label = [
-                    'Mon',
-                    'Tue',
-                    'Wed',
-                    'Thu',
-                    'Fri',
-                    'Sat',
-                    'Sun',
-                  ][day.weekday - 1];
-                  final isSelected = selectedTime.day == day.day;
+                // The actual content
+                body: TabBarView(
+                  children: [
+                    HeatMapView(),
+                    CurrentLocationView(),
+                    RouteView(),
+                    SettingsView(),
+                  ],
+                ),
 
-                  return GestureDetector(
-                    onTap: () => setState(() {
-                      selectedTime = DateTime(
-                        day.year,
-                        day.month,
-                        day.day,
-                        selectedTime.hour,
-                      );
-                    }),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color.fromARGB(255, 100, 149, 190)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white : Colors.black54,
+                // ONLY SHOW ON MAP TAB
+                bottomNavigationBar: controller.index == 0
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Hour',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-                  ),
-                  Text(
-                    '${selectedTime.hour.toString().padLeft(2, '0')}:00',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-              Slider(
-                min: 0,
-                max: 23,
-                divisions: 23,
-                value: selectedTime.hour.toDouble(),
-                onChanged: (val) => setState(() {
-                  selectedTime = DateTime(
-                    selectedTime.year,
-                    selectedTime.month,
-                    selectedTime.day,
-                    val.toInt(),
-                  );
-                }),
-              ),
-            ],
-          ),
-        ),
+                        color: const Color.fromARGB(255, 205, 216, 228),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceEvenly,
+                              children: List.generate(7, (i) {
+                                final day =
+                                    DateTime.now().add(Duration(days: i));
+
+                                final label = [
+                                  'Mon',
+                                  'Tue',
+                                  'Wed',
+                                  'Thu',
+                                  'Fri',
+                                  'Sat',
+                                  'Sun',
+                                ][day.weekday - 1];
+
+                                final isSelected =
+                                    selectedTime.day == day.day;
+
+                                return GestureDetector(
+                                  onTap: () => setState(() {
+                                    selectedTime = DateTime(
+                                      day.year,
+                                      day.month,
+                                      day.day,
+                                      selectedTime.hour,
+                                    );
+                                  }),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? const Color.fromARGB(
+                                              255,
+                                              100,
+                                              149,
+                                              190,
+                                            )
+                                          : Colors.transparent,
+                                      borderRadius:
+                                          BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      label,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Hour',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  '${selectedTime.hour.toString().padLeft(2, '0')}:00',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            Slider(
+                              min: 0,
+                              max: 23,
+                              divisions: 23,
+                              value: selectedTime.hour.toDouble(),
+                              onChanged: (val) => setState(() {
+                                selectedTime = DateTime(
+                                  selectedTime.year,
+                                  selectedTime.month,
+                                  selectedTime.day,
+                                  val.toInt(),
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                      )
+                    : null,
+              );
+            },
+          );
+        },
       ),
     );
   }
