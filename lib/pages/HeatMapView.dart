@@ -76,7 +76,6 @@ class _HeatMapViewState extends State<HeatMapView> {
   // Clean up on deletion
   @override
   dispose() {
-    _heatmapTiles.dispose();
     _arrows.dispose();
     _timer?.cancel();
 
