@@ -40,15 +40,22 @@ class _MainAppState extends State<MainApp> {
     return DefaultTabController(
       length: tabs.length,
 
-      child: Scaffold(
-        // Top bar
-        appBar: AppBar(
-          title: const TabBar(
-            tabs: tabs,
-            dividerColor: Colors.transparent,
-            labelPadding: EdgeInsets.only(bottom: 5.0),
-          ),
-        ),
+      child: Builder(
+        builder: (context) {
+          final controller = DefaultTabController.of(context)!;
+
+          return AnimatedBuilder(
+            animation: controller,
+            builder: (context, _) {
+              return Scaffold(
+                // Top bar
+                appBar: AppBar(
+                  title: const TabBar(
+                    tabs: tabs,
+                    dividerColor: Colors.transparent,
+                    labelPadding: EdgeInsets.only(bottom: 5.0),
+                  ),
+                ),
 
         // The actual content
         body: TabBarView(

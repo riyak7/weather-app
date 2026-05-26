@@ -51,6 +51,28 @@ class _HeatMapViewState extends State<HeatMapView> {
   // The current viewing area in LatLngs
   late LatLngBounds bounds;
 
+  // Add a listener to the time bar current time variable.
+  // When time is changed the arrow layer and heatmap layer get redrawn.
+  @override
+  void initState() {
+    reactiveSelectedTime.addListener(() {
+      double gridWidth = (bounds.east - bounds.west) / _gridSize;
+      double gridHeight = (bounds.north - bounds.south) / _gridSize;
+
+      _heatmapTiles.value = rawToPolygon(
+        rawData[reactiveSelectedTime.value]!,
+        gridWidth,
+        gridHeight,
+      );
+
+      _arrows.value = rawToMarker(
+        rawData[reactiveSelectedTime.value]!,
+        gridWidth,
+        gridHeight,
+      );
+    });
+  }
+
   // Clean up on deletion
   @override
   dispose() {
