@@ -23,7 +23,7 @@ class UnitConversionUtils {
     if(isKnots) {
       return windKnots.round().toString() + "kn";
     } else {
-      return (windKnots*1.944).round().toString() + "m/s";
+      return windKnots.round().toString() + "m/s";
     }
   }
 
