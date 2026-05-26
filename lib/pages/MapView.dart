@@ -192,7 +192,7 @@ class _MapViewState extends State<MapView> {
             ),
             child: Center(
               child: Text(
-                (point['windSpeed'] as double).toStringAsFixed(1),
+                (selectedPoint == point) ? '' : '', //fuck knows
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10,
@@ -236,14 +236,8 @@ class _MapViewState extends State<MapView> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildDetailRow(
-                  'Wind Speed',
-                  UnitConversionUtils.windSpeed(point['windSpeed']),
-                ),
-                _buildDetailRow(
-                  'Gust Speed',
-                  UnitConversionUtils.windSpeed(point['gustSpeed']),
-                ),
+                _buildDetailRow('Wind Speed', _formatSpeed(point['windSpeed'])),
+                _buildDetailRow('Gust Speed', _formatSpeed(point['gustSpeed'])),
                 _buildDetailRow(
                   'Wind Direction',
                   '${(point['windDirection'] as double).toStringAsFixed(1)}°',
@@ -326,6 +320,14 @@ class _MapViewState extends State<MapView> {
       return '${temp.toStringAsFixed(1)}°C';
     } else {
       return '${temp.toStringAsFixed(1)}°F';
+    }
+  }
+
+  String _formatSpeed(double temp) {
+    if (isKnots) {
+      return '${temp.toStringAsFixed(1)} knots';
+    } else {
+      return '${temp.toStringAsFixed(1)} m/s';
     }
   }
 
