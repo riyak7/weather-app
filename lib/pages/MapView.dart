@@ -192,7 +192,7 @@ class _MapViewState extends State<MapView> {
             ),
             child: Center(
               child: Text(
-                (selectedPoint == point) ? '' : '', //fuck knows
+                (point['windSpeed'] as double).toStringAsFixed(1),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10,

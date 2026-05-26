@@ -209,7 +209,7 @@ class _CurrentLocationViewState extends State<CurrentLocationView> {
                                     time: index == 0
                                         ? 'Now'
                                         : DateFormat("ha").format(forecastData[index]["time"]),
-                                    temp: '${UnitConversionUtils.temp(forecastData[index]["temperature"])}°\n${UnitConversionUtils.windSpeed(forecastData[index]["windSpeed"])}',
+                                    temp: '${UnitConversionUtils.tempWithUnit(forecastData[index]["temperature"])}\n${UnitConversionUtils.windSpeed(forecastData[index]["windSpeed"])}',
                                     icon: index < 6
                                         ? Icons.wb_cloudy
                                         : Icons.wb_sunny,
