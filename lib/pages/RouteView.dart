@@ -79,9 +79,6 @@ class _RouteViewState extends State<RouteView> {
 Future<String> importRoute() async {
   try {
     String fileContent = await importFile();
-    var gpxData = GpxReader().fromString(fileContent);
-    // Access waypoints (consider using a logger in production)
-    // print(gpxData.wpts);
     return fileContent;
   } catch (e) {
     throw Exception('Failed to import file: $e');
