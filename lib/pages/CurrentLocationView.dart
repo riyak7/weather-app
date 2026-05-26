@@ -1,22 +1,45 @@
 import "dart:math";
 import "package:flutter/foundation.dart";
 import 'package:flutter/material.dart';
+import "package:intl/intl.dart";
 import "package:geolocator/geolocator.dart";
 import "../utils/LocationUtils.dart";
 import "../utils/UnitConversionUtils.dart";
 import "../widgets/WindCompass.dart";
 import "../globals.dart";
 import "../utils/WeatherData.dart";
+import "../utils/WeatherCache.dart";
 
 
-class CurrentLocationView extends StatelessWidget {
+class CurrentLocationView extends StatefulWidget {
   const CurrentLocationView({super.key});
 
+  @override
+  State<CurrentLocationView> createState() => _CurrentLocationViewState();
+}
+
+class _CurrentLocationViewState extends State<CurrentLocationView> {
+
+  late Future<List<Map<String, dynamic>>> _forecastFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _forecastFuture = getForecast();
+  }
+
   Future<List<Map<String, dynamic>>> getForecast() async {
+    print(WeatherCache.cachedForecast);
+    if(WeatherCache.cachedForecast != null) {
+      return WeatherCache.cachedForecast!;
+    }
+
     Position position = await LocationUtils.determinePosition();
     String town = await LocationUtils.getCurrentAddress(position);
     List<Map<String, dynamic>> hourlyData = (await WeatherData.getSingleData(position.latitude, position.longitude)).values.toList();
     hourlyData.add({"town": town}); // Add the town name to the data so we can display it in the UI
+    WeatherCache.cachedForecast = hourlyData; // Cache the forecast data so we don't have to reload it each time
+    
     return hourlyData;
   }
 
@@ -25,7 +48,7 @@ class CurrentLocationView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: getForecast(),
+      future: _forecastFuture,
       builder: (context, snapshot) {
         if(snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
@@ -38,7 +61,7 @@ class CurrentLocationView extends StatelessWidget {
           );
         }
 
-        List<Map<String, dynamic>> forecastData = snapshot.data ?? [];
+        List<Map<String, dynamic>> forecastData = List<Map<String, dynamic>>.from(snapshot.data ?? []);
         List<List<Map<String, dynamic>>> groupedData = [];
         String town = forecastData.isNotEmpty ? forecastData.removeLast()["town"] : "Unknown Location";
         double windDirection = forecastData.isNotEmpty ? forecastData[0]["windDirection"] as double : 0.0;
@@ -115,7 +138,7 @@ class CurrentLocationView extends StatelessWidget {
                               )
                             ),
                             Text(
-                              'Mon, Mar 2',
+                              DateFormat("EEE d MMM").format(datetime),
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: 16,
@@ -158,18 +181,22 @@ class CurrentLocationView extends StatelessWidget {
                           top: Radius.circular(30),
                         ),
                       ),
-                      child: Column(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Center(
-                              child: Text(
-                                'Hourly Forecast',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 16),
+                                child: Text(
+                                  'Hourly Forecast',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                               ),
-                            ),
+                            )),
                             const SizedBox(height: 16),
                             SizedBox(
                               height: 130,
@@ -181,7 +208,7 @@ class CurrentLocationView extends StatelessWidget {
                                     context,
                                     time: index == 0
                                         ? 'Now'
-                                        : '${forecastData[index]["time"].hour < 12 ? forecastData[index]["time"].hour : forecastData[index]["time"].hour - 12}${forecastData[index]["time"].hour < 12 ? 'AM' : 'PM'}',
+                                        : DateFormat("ha").format(forecastData[index]["time"]),
                                     temp: '${UnitConversionUtils.temp(forecastData[index]["temperature"])}°\n${UnitConversionUtils.windSpeed(forecastData[index]["windSpeed"])}',
                                     icon: index < 6
                                         ? Icons.wb_cloudy
@@ -191,6 +218,39 @@ class CurrentLocationView extends StatelessWidget {
                                 },
                               ),
                             ),
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildWeatherDetail(
+                                    Icons.wind_power,
+                                    'Wind Speed',
+                                    (UnitConversionUtils.windSpeed(forecastData.isNotEmpty ? forecastData[0]["windSpeed"] as double : 0.0)).toString(),
+                                    isDark,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildWeatherDetail(
+                                    Icons.air,
+                                    'Gust Speed',
+                                    (UnitConversionUtils.windSpeed(forecastData.isNotEmpty ? forecastData[0]["gustSpeed"] as double : 0.0)).toString(),
+                                    isDark,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildWeatherDetail(
+                                    Icons.compress_outlined,
+                                    'Air Pressure',
+                                    forecastData.isNotEmpty ? '${(forecastData[0]["pressure"] as double).round()} hPa' : '-- hPa',
+                                    isDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+
                             const SizedBox(height: 24),
                             const Center(
                               child: Text(
@@ -246,39 +306,9 @@ class CurrentLocationView extends StatelessWidget {
                               Icons.wb_sunny,
                               isDark,
                             ),
-                            const SizedBox(height: 24),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildWeatherDetail(
-                                    Icons.wind_power,
-                                    'Wind Speed',
-                                    (UnitConversionUtils.windSpeed(forecastData.isNotEmpty ? forecastData[0]["windSpeed"] as double : 0.0)).toString(),
-                                    isDark,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildWeatherDetail(
-                                    Icons.air,
-                                    'Gust Speed',
-                                    (UnitConversionUtils.windSpeed(forecastData.isNotEmpty ? forecastData[0]["gustSpeed"] as double : 0.0)).toString(),
-                                    isDark,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildWeatherDetail(
-                                    Icons.compress_outlined,
-                                    'Air Pressure',
-                                    forecastData.isNotEmpty ? '${(forecastData[0]["pressure"] as double).round()} hPa' : '-- hPa',
-                                    isDark,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            
                           ],
-                      ),
+                      )),
                     ),
                   ],
                 ),

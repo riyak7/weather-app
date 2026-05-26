@@ -2,14 +2,18 @@ import "../globals.dart";
 
 class UnitConversionUtils {
   static String temp(double temp) {
-    return temp.round().toString();
+    if(isCelsius) {
+      return temp.round().toString();
+    } else {
+      return (temp*1.8 + 32).round().toString();
+    }
   }
 
   static String tempWithUnit(double temp) {
     if(isCelsius) {
       return temp.round().toString() + "°C";
     } else {
-      return temp.round().toString() + "°F";
+      return (temp * 1.8 + 32).round().toString() + "°F";
     }
   }
 
@@ -19,7 +23,7 @@ class UnitConversionUtils {
     if(isKnots) {
       return windKnots.round().toString() + "kn";
     } else {
-      return windKnots.round().toString() + "m/s";
+      return (windKnots*1.944).round().toString() + "m/s";
     }
   }
 

@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -8,6 +7,7 @@ import 'package:weather_app_sailing/utils/HeatMapUtils.dart';
 import 'dart:async';
 
 import 'package:weather_app_sailing/utils/WeatherData.dart';
+import 'package:weather_app_sailing/globals.dart';
 
 // We use a stateful widget so that we get access to the destructor
 // so we can free memory to avoid leaks when widget destroyed.
@@ -26,7 +26,8 @@ class _HeatMapViewState extends State<HeatMapView> {
   // When we change the value of _heatmapTiles it automatically alerts the changes
   // everywhere that uses it.
   // The same is true for _arrows which store the wind direction markers
-  final ValueNotifier<List<Polygon>> _heatmapTiles = ValueNotifier<List<Polygon>>([]);
+  final ValueNotifier<List<Polygon>> _heatmapTiles =
+      ValueNotifier<List<Polygon>>([]);
   final ValueNotifier<List<Marker>> _arrows = ValueNotifier<List<Marker>>([]);
 
   // This timer is used for debouncing, when the user scrolls on the
@@ -36,11 +37,41 @@ class _HeatMapViewState extends State<HeatMapView> {
   Timer? _timer;
   final Duration _debounceDuration = Duration(milliseconds: 500);
 
-  // The size of the grid we render 10x10 = 100 tiles and arrows rendered
+  // The size of the grid we render 15*15 = 225 tiles and arrows rendered
   static final _gridSize = 10;
 
   // Our grid is blocky, we need to blur to make it look nice
   static final _blur = 24.0;
+
+  // Global rawData var so we don't have to keep calling the api when
+  // we are just changing the time
+  // `late` to signify we will initialise this later
+  late Map<DateTime, Set<(num, num, num, num)>> rawData;
+
+  // The current viewing area in LatLngs
+  late LatLngBounds bounds;
+
+  // Add a listener to the time bar current time variable.
+  // When time is changed the arrow layer and heatmap layer get redrawn.
+  @override
+  void initState() {
+    reactiveSelectedTime.addListener(() {
+      double gridWidth = (bounds.east - bounds.west) / _gridSize;
+      double gridHeight = (bounds.north - bounds.south) / _gridSize;
+
+      _heatmapTiles.value = rawToPolygon(
+        rawData[reactiveSelectedTime.value]!,
+        gridWidth,
+        gridHeight,
+      );
+
+      _arrows.value = rawToMarker(
+        rawData[reactiveSelectedTime.value]!,
+        gridWidth,
+        gridHeight,
+      );
+    });
+  }
 
   // Clean up on deletion
   @override
@@ -54,116 +85,211 @@ class _HeatMapViewState extends State<HeatMapView> {
 
   @override
   Widget build(BuildContext context) {
-    return FlutterMap(
-      options: MapOptions(
-        // Initial configs
-        initialCenter: const LatLng(51.509364, -0.128928), // London, UK
-        initialZoom: 5.2,
-
-        // Update heatmap and data when the map view changes,
-        // needs to be debounced to prevent spamming api calls
-        onMapEvent: (event) {
-          if (event is MapEventMoveEnd ||
-              event is MapEventDoubleTapZoomEnd ||
-              event is MapEventFlingAnimationEnd ||
-              event is MapEventScrollWheelZoom ||
-              event is MapEventNonRotatedSizeChange // <- This event is the start event
-              ) {
-            
-            // Debounce logic, if we already have a timer -> cancel it
-            // Now create a new one that runs remake heatmap after _debounceDuration milliseconds
-            _timer?.cancel();
-            _timer = Timer(_debounceDuration, () async {
-              var bounds = event.camera.visibleBounds;
-
-              // Get raw data
-              var rawData = await WeatherData.getWindData(
-                WeatherData.locationsFromGrid(bounds.north, bounds.west, bounds.south, bounds.east, _gridSize, _gridSize),
-              );
-
-              if (!mounted) return; // if user switches screen before await returns, will be disposed of, giving an error when it actually does return
-
-              // TODO, currently we just look at the first time but we should look at the current time
-              if (rawData.values.isNotEmpty) {
-                // Using the data fetched from the api create the heatmap and the arrows
-                // 1.07 scaling needed because without it tiles too small, idk why
-                double gridWidth = (bounds.east - bounds.west)/_gridSize;
-                double gridHeight = (bounds.north - bounds.south)/_gridSize;
-
-                // Converts the raw data to polygon data that can be drawn to a map
-                _heatmapTiles.value = rawToPolygon(
-                  rawData.values.first,
-                  gridWidth,
-                  gridHeight,
-                );
-
-                // Converts the raw data to marker data for map
-                _arrows.value = rawToMarker(
-                  rawData.values.first,
-                  gridWidth,
-                  gridHeight,
-                );
-              }
-            });
-          }
-        },
-      ),
+    return Column(
       children: [
-        // TileLayer is where we get the actual map from,
-        // cartocdn is minimal and doesn't need an api key
-        TileLayer(
-          urlTemplate:
-              'https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png',
-          userAgentPackageName: 'weather_app_sailing',
-        ),
-        // This is the heatmap layer. It is essentially a grid of
-        // squares (Polygons) drawn over the map.
-        ValueListenableBuilder<List<Polygon>>(
-          valueListenable: _heatmapTiles,
-          builder: (context, polygons, child) {
-            return ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: _blur, sigmaY: _blur),
-              child: PolygonLayer(polygons: polygons)
-            );
-          },
-        ),
-        // And this is the arrow layer
-        ValueListenableBuilder<List<Marker>>(
-          valueListenable: _arrows,
-          builder: (context, markers, child) {
-            return MarkerLayer(markers: markers);
-          },
-        ),
-        
-        // Boilerplate below from flutter_maps docs - ignore RichAttributionWidget
-        RichAttributionWidget(
-          alignment: AttributionAlignment.bottomRight,
-          attributions: [
-            TextSourceAttribution(
-              '© CARTO',
-              onTap: () async {
-                final Uri url = Uri.parse(
-                  'https://carto.com/help/working-with-data/attribution-requirements/',
-                );
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
+        Expanded(
+          child: FlutterMap(
+            options: MapOptions(
+              initialCenter: const LatLng(51.509364, -0.128928),
+              initialZoom: 5.2,
+              onMapEvent: (event) {
+                if (event is MapEventMoveEnd ||
+                    event is MapEventDoubleTapZoomEnd ||
+                    event is MapEventFlingAnimationEnd ||
+                    event is MapEventScrollWheelZoom ||
+                    event is MapEventNonRotatedSizeChange) {
+                  _timer?.cancel();
+                  _timer = Timer(_debounceDuration, () async {
+                    bounds = event.camera.visibleBounds;
+                    rawData = await WeatherData.getWindData(
+                      WeatherData.locationsFromGrid(
+                        bounds.north,
+                        bounds.west,
+                        bounds.south,
+                        bounds.east,
+                        _gridSize,
+                        _gridSize,
+                      ),
+                    );
+                    if (!mounted) return;
+                    if (rawData.values.isNotEmpty) {
+                      double gridWidth =
+                          (bounds.east - bounds.west) / _gridSize;
+                      double gridHeight =
+                          (bounds.north - bounds.south) / _gridSize;
+                      print(selectedTime);
+                      print(rawData);
+                      _heatmapTiles.value = rawToPolygon(
+                        rawData[selectedTime]!,
+                        gridWidth,
+                        gridHeight,
+                      );
+                      _arrows.value = rawToMarker(
+                        rawData.values.first,
+                        gridWidth,
+                        gridHeight,
+                      );
+                    }
+                  });
                 }
               },
             ),
-            TextSourceAttribution(
-              '© OpenStreetMap contributors',
-              onTap: () async {
-                final Uri url = Uri.parse(
-                  'https://openstreetmap.org/copyright',
-                );
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
-          ],
+            children: [
+              TileLayer(
+                urlTemplate:
+                    'https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png',
+                userAgentPackageName: 'weather_app_sailing',
+              ),
+              ValueListenableBuilder<List<Polygon>>(
+                valueListenable: _heatmapTiles,
+                builder: (context, polygons, child) {
+                  return ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: _blur, sigmaY: _blur),
+                    child: PolygonLayer(polygons: polygons),
+                  );
+                },
+              ),
+              ValueListenableBuilder<List<Marker>>(
+                valueListenable: _arrows,
+                builder: (context, markers, child) {
+                  return MarkerLayer(markers: markers);
+                },
+              ),
+              RichAttributionWidget(
+                alignment: AttributionAlignment.bottomRight,
+                attributions: [
+                  TextSourceAttribution(
+                    '© CARTO',
+                    onTap: () async {
+                      final Uri url = Uri.parse(
+                        'https://carto.com/help/working-with-data/attribution-requirements/',
+                      );
+                      if (await canLaunchUrl(url))
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
+                    },
+                  ),
+                  TextSourceAttribution(
+                    '© OpenStreetMap contributors',
+                    onTap: () async {
+                      final Uri url = Uri.parse(
+                        'https://openstreetmap.org/copyright',
+                      );
+                      if (await canLaunchUrl(url))
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Time bar at the bottom
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          color: const Color.fromARGB(255, 205, 216, 228),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(7, (i) {
+                  final day = DateTime.now().add(Duration(days: i));
+                  final label = [
+                    'Mon',
+                    'Tue',
+                    'Wed',
+                    'Thu',
+                    'Fri',
+                    'Sat',
+                    'Sun',
+                  ][day.weekday - 1];
+                  final isSelected = selectedTime.day == day.day;
+                  return GestureDetector(
+                    onTap: () => setState(() {
+                      selectedTime = DateTime(
+                        day.year,
+                        day.month,
+                        day.day,
+                        selectedTime.hour,
+                      );
+                      reactiveSelectedTime.value = DateTime(
+                        day.year,
+                        day.month,
+                        day.day,
+                        selectedTime.hour,
+                      );
+                    }),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color.fromARGB(255, 100, 149, 190)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? Colors.white : Colors.black54,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Hour',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                  ),
+                  Text(
+                    '${selectedTime.hour.toString().padLeft(2, '0')}:00',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                min: 0,
+                max: 23,
+                divisions: 23,
+                value: selectedTime.hour.toDouble(),
+                onChanged: (val) => setState(() {
+                  selectedTime = DateTime(
+                    selectedTime.year,
+                    selectedTime.month,
+                    selectedTime.day,
+                    val.toInt(),
+                  );
+                  reactiveSelectedTime.value = DateTime(
+                    selectedTime.year,
+                    selectedTime.month,
+                    selectedTime.day,
+                    val.toInt(),
+                  );
+                }),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
-} 
+}
