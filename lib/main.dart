@@ -16,9 +16,16 @@ void main() {
   runApp(MaterialApp(home: const MainApp()));
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
+  // creates the state of StatefulWidget
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  // The top bar elements (icons)
   static const List<Widget> tabs = <Widget>[
     icons.Globe(),
     icons.NavigatorAlt(),
@@ -28,24 +35,42 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The tab system including the interactive top bar for switching
+    // and each page that gets displayed.
     return DefaultTabController(
       length: tabs.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const TabBar(
-            tabs: tabs,
-            dividerColor: Colors.transparent,
-            labelPadding: EdgeInsets.only(bottom: 5.0),
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            HeatMapView(),
-            CurrentLocationView(),
-            RouteView(),
-            SettingsView(),
-          ],
-        ),
+
+      child: Builder(
+        builder: (context) {
+          final controller = DefaultTabController.of(context)!;
+
+          return AnimatedBuilder(
+            animation: controller,
+            builder: (context, _) {
+              return Scaffold(
+                // Top bar
+                appBar: AppBar(
+                  title: const TabBar(
+                    tabs: tabs,
+                    dividerColor: Colors.transparent,
+                    labelPadding: EdgeInsets.only(bottom: 5.0),
+                  ),
+                ),
+
+                body: TabBarView(
+                  children: [
+                    HeatMapView(),
+                    CurrentLocationView(),
+                    RouteView(),
+                    SettingsView(),
+                  ],
+                ),
+              );
+            }
+          );
+        }
+        // The actual content
+
       ),
     );
   }
